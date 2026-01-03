@@ -74,15 +74,43 @@ window.quillInterop = {
         return "";
     },
 
+    getText: function() {
+        if (this.quill) {
+            return this.quill.getText();
+        }
+        return "";
+    },
+
     setHtml: function (html) {
         if (this.quill) {
             this.quill.clipboard.dangerouslyPasteHTML(html);
         }
     },
 
-    downloadFile: function(filename, content) {
+    saveAsDocx: async function(filename, htmlContent) {
+        if (!window.docshift) {
+            console.error("DocShift library not loaded");
+            return;
+        }
+        try {
+            const blob = await window.docshift.toDocx(htmlContent);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error generating DocX:", error);
+        }
+    },
+
+    downloadFile: function(filename, content, contentType) {
+        contentType = contentType || 'text/html';
         const element = document.createElement('a');
-        const file = new Blob([content], {type: 'text/html'});
+        const file = new Blob([content], {type: contentType});
         element.href = URL.createObjectURL(file);
         element.download = filename;
         document.body.appendChild(element);
