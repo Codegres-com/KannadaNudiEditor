@@ -1,6 +1,9 @@
 html, body {
     font-family: 'Poppins', sans-serif;
     background-color: #c89963;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
 }
 
 h1:focus {
@@ -8,13 +11,39 @@ h1:focus {
 }
 
 .card-container {
-    max-width: 750px;
+    max-width: 100%;
     width: 100%;
-    padding: 30px;
+    padding: 20px;
     background: #fff;
     border-radius: 7px;
     box-shadow: 0 10px 20px rgba(0,0,0,0.01);
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+@media (max-width: 768px) {
+    .card-container {
+        max-width: 100%;
+        padding: 10px;
+        border-radius: 0;
+        box-shadow: none;
+        margin: 0;
+    }
+}
+
+.ql-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.ql-editor {
+    flex: 1;
+    overflow-y: auto;
 }
 
 a, .btn-link {
