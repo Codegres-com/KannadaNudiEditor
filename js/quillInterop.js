@@ -1,6 +1,7 @@
 window.quillInterop = {
     quill: null,
     dotNetRef: null,
+    lastKeyHandledTime: 0,
 
     init: function (elementId, dotNetReference) {
         if (!window.Quill) {
@@ -28,9 +29,74 @@ window.quillInterop = {
             }
         });
 
+        // Disable predictive text features to prevent mobile keyboard interference
+        if (this.quill.root) {
+            this.quill.root.setAttribute('autocomplete', 'off');
+            this.quill.root.setAttribute('autocorrect', 'off');
+            this.quill.root.setAttribute('autocapitalize', 'off');
+            this.quill.root.setAttribute('spellcheck', 'false');
+        }
+
         this.quill.on('selection-change', function(range, oldRange, source) {
+            // Prevent buffer clearing if we just handled a key/input event recently
+            if (Date.now() - window.quillInterop.lastKeyHandledTime < 500) {
+                console.log("Ignoring selection change due to recent input");
+                return;
+            }
+
             if (source === 'user' && dotNetReference) {
                 dotNetReference.invokeMethodAsync('OnSelectionChanged');
+            }
+        });
+
+        // Mobile Input Support via text-change
+        this.quill.on('text-change', (delta, oldDelta, source) => {
+            if (source === 'user' && window.isKannadaMode) {
+                if (!this.dotNetRef) return;
+
+                let index = 0;
+                let handled = false;
+
+                // Iterate ops to find the operation and its position
+                for (let i = 0; i < delta.ops.length; i++) {
+                    const op = delta.ops[i];
+                    if (op.retain) {
+                        index += op.retain;
+                    } else if (op.insert && typeof op.insert === 'string') {
+                        // Handle single character insertions (excluding newlines)
+                        if (op.insert.length === 1 && op.insert !== '\n') {
+                            // Update timestamp to prevent selection-change from clearing buffer
+                            this.lastKeyHandledTime = Date.now();
+
+                            // Revert the user's insertion immediately by deleting it
+                            this.quill.deleteText(index, op.insert.length, 'silent');
+
+                            // Send the character to C# for transliteration
+                            this.dotNetRef.invokeMethodAsync('ProcessKannadaKey', op.insert);
+                            handled = true;
+                            break;
+                        }
+                        index += op.insert.length;
+                    } else if (op.delete) {
+                         // Check if this deletion was already handled by keydown
+                         const now = Date.now();
+                         // We only handle it if keydown didn't catch it recently
+                         if (now - this.lastKeyHandledTime > 100) {
+                             // Update timestamp
+                             this.lastKeyHandledTime = Date.now();
+
+                             if (op.delete > 1) {
+                                 // Bulk deletion: Sync state by clearing buffer
+                                 this.dotNetRef.invokeMethodAsync('OnSelectionChanged');
+                             } else {
+                                 // Single char deletion: Try to process backspace logic
+                                 this.dotNetRef.invokeMethodAsync('ProcessBackspace');
+                             }
+                             handled = true;
+                         }
+                         break;
+                    }
+                }
             }
         });
     },
@@ -119,7 +185,7 @@ window.quillInterop = {
     },
 
     // Input Interception Logic moved here
-    registerKeyInterceptor: function (dotNetObj) {
+    registerKeyInterceptor: function (dotNetReference) {
         // We use the container or editor div.
         // Quill usually creates .ql-editor inside the container.
         // We can listen on window or the container.
@@ -140,8 +206,9 @@ window.quillInterop = {
                 // Handle Backspace
                 if (e.key === 'Backspace') {
                     console.log("Processing Backspace");
+                    window.quillInterop.lastKeyHandledTime = Date.now(); // Mark as handled
                     // We notify C# to update buffer, but we let Quill perform the deletion normally.
-                    dotNetObj.invokeMethodAsync('ProcessBackspace');
+                    dotNetReference.invokeMethodAsync('ProcessBackspace');
                     return;
                 }
 
@@ -150,7 +217,8 @@ window.quillInterop = {
                     console.log("Preventing default and processing key:", e.key);
                     e.preventDefault();
                     e.stopPropagation();
-                    dotNetObj.invokeMethodAsync('ProcessKannadaKey', e.key);
+                    window.quillInterop.lastKeyHandledTime = Date.now(); // Mark as handled
+                    dotNetReference.invokeMethodAsync('ProcessKannadaKey', e.key);
                 }
             }
         }, true); // Capture phase
