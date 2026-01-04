@@ -1,9 +1,20 @@
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
+    background-color: #c89963;
 }
 
 h1:focus {
     outline: none;
+}
+
+.card-container {
+    max-width: 750px;
+    width: 100%;
+    padding: 30px;
+    background: #fff;
+    border-radius: 7px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.01);
+    margin: 0 auto;
 }
 
 a, .btn-link {

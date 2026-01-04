@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "KannadaNudiWeb",
   "resources": {
-    "hash": "sha256-33TpApucA+QDkQItmSdf+UAPGCH8pM7Gjd8KeTwl0qI=",
+    "hash": "sha256-WUBKMcCzwxiWR6FZ1RGiqfsFZ8hLxGdonRAbo6R/qkQ=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-vtotCeXt2UD6oc459laJT32vBgigZ+eLoUmdeFkvYDk="
     },
@@ -49,7 +49,7 @@
       "System.Text.RegularExpressions.wasm": "sha256-cdst11jKWkrChKLx6e9XN6/+toEA7YFTLgSqA49t0UU=",
       "System.Threading.wasm": "sha256-A/T6ZqAEwCt9MvkCwK489A59CsjMeamN1y3W4hz59h4=",
       "System.Private.CoreLib.wasm": "sha256-Y4GSuljQJ4X/bqL8Iy2eH4ZDkv2ZwdKQnf9zkNZH8/E=",
-      "KannadaNudiWeb.wasm": "sha256-gVJmCkS7EpePLSIJx1jg1JwtZJ3GNWKIOkJHQyNGDgY="
+      "KannadaNudiWeb.wasm": "sha256-IFeyJ02zBjkbp5NLiXIenT8u37QeJSwGAdBr3BEhMlo="
     }
   },
   "cacheBootResources": true,
