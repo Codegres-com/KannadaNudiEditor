@@ -39,6 +39,7 @@ window.speechInterop = {
         if (!SpeechRecognition) return false;
 
         console.log("Starting Native Speech Recognition");
+        this.dotNetRef.invokeMethodAsync('OnSpeechStatus', 'listening');
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
         this.recognition.interimResults = false;
@@ -78,6 +79,7 @@ window.speechInterop = {
                 const msg = e.data;
                 if (msg.type === 'status') {
                     console.log("Whisper Worker Status:", msg.status);
+                    this.dotNetRef.invokeMethodAsync('OnSpeechStatus', msg.status);
                     if (msg.status === 'ready') this.workerReady = true;
                 } else if (msg.type === 'result') {
                     if (msg.text && msg.text.trim().length > 0) {
@@ -128,6 +130,7 @@ window.speechInterop = {
                 this.processAudioChunk(lang);
             }, 3000);
 
+            this.dotNetRef.invokeMethodAsync('OnSpeechStatus', 'listening');
             return true;
         } catch (err) {
             console.error("Error accessing microphone", err);

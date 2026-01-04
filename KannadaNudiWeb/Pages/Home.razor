@@ -16,10 +16,18 @@
     </div>
 
     <div class="toolbar-group">
-         <button class="btn @(isListening ? "btn-danger" : "btn-primary")" @onclick="ToggleSpeech">
-             <span class="bi bi-mic"></span> @(isListening ? "Stop Speech" : "Start Speech")
+         <button class="btn @(isListening ? "btn-danger" : "btn-primary")" @onclick="ToggleSpeech" disabled="@isModelLoading">
+             @if (isModelLoading)
+             {
+                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                 <span> Loading Model...</span>
+             }
+             else
+             {
+                 <span class="bi bi-mic"></span> @(isListening ? "Stop Speech" : "Start Speech")
+             }
          </button>
-         <select class="form-select ms-2" style="width:auto; display:inline-block;" @bind="speechLang">
+         <select class="form-select ms-2" style="width:auto; display:inline-block;" @bind="speechLang" disabled="@isListening">
              <option value="kn-IN">Kannada</option>
              <option value="en-IN">English</option>
          </select>
@@ -94,6 +102,7 @@
     public bool IsKannadaInput { get; set; } = false;
 
     bool isListening = false;
+    bool isModelLoading = false;
     bool showSaveModal = false;
     string saveFileName = "Document";
     string speechLang = "kn-IN";
@@ -105,6 +114,7 @@
         await TransliterationService.InitializeAsync();
         SpeechService.OnResult += OnSpeechResult;
         SpeechService.OnError += OnSpeechError;
+        SpeechService.OnStatus += OnSpeechStatus;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -165,8 +175,31 @@
         else
         {
             await SpeechService.StartAsync(speechLang);
-            isListening = true;
+            // State update will happen via OnSpeechStatus
         }
+    }
+
+    private void OnSpeechStatus(string status)
+    {
+        InvokeAsync(() =>
+        {
+            if (status == "loading")
+            {
+                isModelLoading = true;
+                isListening = false;
+            }
+            else if (status == "ready")
+            {
+                isModelLoading = false;
+                isListening = true;
+            }
+            else if (status == "listening")
+            {
+                isModelLoading = false;
+                isListening = true;
+            }
+            StateHasChanged();
+        });
     }
 
     private void OnSpeechResult(string text)
@@ -180,8 +213,12 @@
     private void OnSpeechError(string error)
     {
         Console.WriteLine($"Speech Error: {error}");
-        isListening = false;
-        StateHasChanged();
+        InvokeAsync(() =>
+        {
+            isListening = false;
+            isModelLoading = false;
+            StateHasChanged();
+        });
     }
 
     private void SaveDocument()

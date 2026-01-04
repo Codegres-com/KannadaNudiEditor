@@ -11,6 +11,7 @@ namespace KannadaNudiWeb.Services
 
         public event Action<string>? OnResult;
         public event Action<string>? OnError;
+        public event Action<string>? OnStatus;
 
         public SpeechService(IJSRuntime jsRuntime)
         {
@@ -38,6 +39,12 @@ namespace KannadaNudiWeb.Services
         public void OnSpeechError(string error)
         {
             OnError?.Invoke(error);
+        }
+
+        [JSInvokable]
+        public void OnSpeechStatus(string status)
+        {
+            OnStatus?.Invoke(status);
         }
 
         public async ValueTask DisposeAsync()
