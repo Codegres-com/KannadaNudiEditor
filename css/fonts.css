@@ -1,0 +1,90 @@
+
+@font-face {
+    font-family: 'Nudi 02 e';
+    src: url('../fonts/Nudi 02 e.ttf') format('truetype');
+}
+
+.ql-font-nudi-02-e {
+    font-family: 'Nudi 02 e';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nudi-02-e"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nudi-02-e"]::before {
+    content: 'Nudi 02 e';
+    font-family: 'Nudi 02 e';
+}
+
+@font-face {
+    font-family: 'Nudi 05 e';
+    src: url('../fonts/Nudi 05 e.ttf') format('truetype');
+}
+
+.ql-font-nudi-05-e {
+    font-family: 'Nudi 05 e';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nudi-05-e"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nudi-05-e"]::before {
+    content: 'Nudi 05 e';
+    font-family: 'Nudi 05 e';
+}
+
+@font-face {
+    font-family: 'Nudi Parijatha';
+    src: url('../fonts/NudiParijatha.ttf') format('truetype');
+}
+
+.ql-font-nudiparijatha {
+    font-family: 'Nudi Parijatha';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nudiparijatha"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nudiparijatha"]::before {
+    content: 'Nudi Parijatha';
+    font-family: 'Nudi Parijatha';
+}
+
+@font-face {
+    font-family: 'Nudi 10 e';
+    src: url('../fonts/Nudi 10 e.ttf') format('truetype');
+}
+
+.ql-font-nudi-10-e {
+    font-family: 'Nudi 10 e';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nudi-10-e"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nudi-10-e"]::before {
+    content: 'Nudi 10 e';
+    font-family: 'Nudi 10 e';
+}
+
+@font-face {
+    font-family: 'Nudi 01 e';
+    src: url('../fonts/Nudi 01 e.ttf') format('truetype');
+}
+
+.ql-font-nudi-01-e {
+    font-family: 'Nudi 01 e';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nudi-01-e"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nudi-01-e"]::before {
+    content: 'Nudi 01 e';
+    font-family: 'Nudi 01 e';
+}
+
+@font-face {
+    font-family: 'Nudi 01 k';
+    src: url('../fonts/Nudi 01 k.ttf') format('truetype');
+}
+
+.ql-font-nudi-01-k {
+    font-family: 'Nudi 01 k';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nudi-01-k"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nudi-01-k"]::before {
+    content: 'Nudi 01 k';
+    font-family: 'Nudi 01 k';
+}

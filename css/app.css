@@ -44,6 +44,7 @@ h1:focus {
 .ql-editor {
     flex: 1;
     overflow-y: auto;
+    font-family: 'Nudi Parijatha', 'Poppins', sans-serif;
 }
 
 a, .btn-link {

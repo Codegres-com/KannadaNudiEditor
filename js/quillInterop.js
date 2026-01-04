@@ -11,11 +11,17 @@ window.quillInterop = {
 
         console.log("Initializing Quill on", elementId);
         this.dotNetRef = dotNetReference;
+
+        // Register custom fonts
+        var Font = Quill.import('formats/font');
+        Font.whitelist = ['nudiparijatha', 'nudi-01-e', 'nudi-01-k', 'nudi-02-e', 'nudi-05-e', 'nudi-10-e'];
+        Quill.register(Font, true);
+
         this.quill = new Quill(elementId, {
             theme: 'snow',
             modules: {
                 toolbar: [
-                    [{ 'font': [] }, { 'size': [] }],
+                    [{ 'font': Font.whitelist }, { 'size': [] }],
                     ['bold', 'italic', 'underline', 'strike'],
                     [{ 'color': [] }, { 'background': [] }],
                     [{ 'script': 'sub' }, { 'script': 'super' }],
