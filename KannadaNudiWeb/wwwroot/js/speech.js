@@ -103,8 +103,8 @@ window.speechInterop = {
             this.mediaStream = stream;
 
             const AudioContext = window.AudioContext || window.webkitAudioContext;
-            // Try to set sampleRate to 16000, but browser might ignore it
-            this.audioContext = new AudioContext({ sampleRate: 16000 });
+            // Do not force sampleRate; use system default to avoid "different sample-rate" errors
+            this.audioContext = new AudioContext();
 
             const source = this.audioContext.createMediaStreamSource(stream);
 
