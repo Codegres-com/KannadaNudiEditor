@@ -136,10 +136,10 @@ window.speechInterop = {
             source.connect(this.scriptProcessor);
             this.scriptProcessor.connect(this.audioContext.destination);
 
-            // Start Chunking Interval (e.g. every 3 seconds)
+            // Start Chunking Interval (e.g. every 5 seconds)
             this.chunkInterval = setInterval(() => {
                 this.processAudioChunk(lang);
-            }, 3000);
+            }, 5000);
 
             this.dotNetRef.invokeMethodAsync('OnSpeechStatus', 'listening');
             return true;

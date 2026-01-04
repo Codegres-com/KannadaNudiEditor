@@ -33,10 +33,14 @@ self.addEventListener('message', async (event) => {
                 lang = lang.split('-')[0];
             }
 
+            console.log(`Worker processing audio chunk. Length: ${audio.length}, Language: ${lang}`);
+
             // Run transcription
+            // chunk_length_s: 30 helps prevent hallucinations on short audio by simulating a full context window
             const output = await transcriber(audio, {
                 language: lang,
-                task: 'transcribe'
+                task: 'transcribe',
+                chunk_length_s: 30
             });
 
             // Output is usually { text: "..." }
