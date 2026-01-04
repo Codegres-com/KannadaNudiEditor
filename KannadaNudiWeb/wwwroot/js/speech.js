@@ -14,6 +14,7 @@ window.speechInterop = {
 
     start: function (dotNetReference, lang) {
         this.dotNetRef = dotNetReference;
+        console.log("Speech Start requested for language:", lang);
 
         // Feature Detection: Prefer Native in Chrome/Edge, fallback for Firefox/Others
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -27,6 +28,7 @@ window.speechInterop = {
     },
 
     stop: function () {
+        console.log("Speech Stop requested");
         if (this.recognition) {
             this.recognition.stop();
             this.recognition = null;
@@ -38,7 +40,7 @@ window.speechInterop = {
     startNative: function (SpeechRecognition, lang) {
         if (!SpeechRecognition) return false;
 
-        console.log("Starting Native Speech Recognition");
+        console.log("Starting Native Speech Recognition for:", lang);
         this.dotNetRef.invokeMethodAsync('OnSpeechStatus', 'listening');
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
@@ -95,7 +97,16 @@ window.speechInterop = {
     },
 
     startWhisper: async function(lang) {
-        console.log("Starting Whisper (WASM) Recognition");
+        // If already recording, stop first to reset state/language
+        if (this.isRecording) {
+            this.stopWhisper();
+        }
+
+        console.log("Starting Whisper (WASM) Recognition for:", lang);
+
+        // Notify UI that we are starting (intermediate state)
+        this.dotNetRef.invokeMethodAsync('OnSpeechStatus', 'starting');
+
         this.initWorker();
 
         try {
@@ -140,6 +151,7 @@ window.speechInterop = {
     },
 
     stopWhisper: function() {
+        console.log("Stopping Whisper...");
         this.isRecording = false;
         if (this.chunkInterval) {
             clearInterval(this.chunkInterval);
@@ -157,6 +169,7 @@ window.speechInterop = {
             this.audioContext.close();
             this.audioContext = null;
         }
+        this.audioBuffer = [];
     },
 
     processAudioChunk: function(lang) {
@@ -178,6 +191,7 @@ window.speechInterop = {
             finalAudio = this.downsampleBuffer(result, this.audioContext.sampleRate, 16000);
         }
 
+        console.log("Sending chunk to worker, Lang:", lang);
         // Send to worker
         this.worker.postMessage({
             type: 'transcribe',

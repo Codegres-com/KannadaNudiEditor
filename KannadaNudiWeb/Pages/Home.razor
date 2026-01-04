@@ -20,7 +20,7 @@
              @if (isModelLoading)
              {
                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                 <span> Loading Model...</span>
+                 <span> @(isStarting ? "Starting..." : "Loading Model...")</span>
              }
              else
              {
@@ -103,6 +103,7 @@
 
     bool isListening = false;
     bool isModelLoading = false;
+    bool isStarting = false;
     bool showSaveModal = false;
     string saveFileName = "Document";
     string speechLang = "kn-IN";
@@ -186,16 +187,25 @@
             if (status == "loading")
             {
                 isModelLoading = true;
+                isStarting = false;
+                isListening = false;
+            }
+            else if (status == "starting")
+            {
+                isModelLoading = true;
+                isStarting = true;
                 isListening = false;
             }
             else if (status == "ready")
             {
                 isModelLoading = false;
-                isListening = true;
+                isStarting = false;
+                isListening = false;
             }
             else if (status == "listening")
             {
                 isModelLoading = false;
+                isStarting = false;
                 isListening = true;
             }
             StateHasChanged();
@@ -217,6 +227,7 @@
         {
             isListening = false;
             isModelLoading = false;
+            isStarting = false;
             StateHasChanged();
         });
     }
