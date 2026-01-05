@@ -45,6 +45,7 @@ h1:focus {
     flex: 1;
     overflow-y: auto;
     font-family: 'Nudi Parijatha', 'Poppins', sans-serif;
+    font-size: 200%;
 }
 
 a, .btn-link {
