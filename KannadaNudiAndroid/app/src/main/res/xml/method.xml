@@ -2,11 +2,13 @@
 <input-method xmlns:android="http://schemas.android.com/apk/res/android">
     <subtype
         android:label="@string/subtype_phonetic"
+        android:icon="@drawable/kannada_nudi_logo"
         android:imeSubtypeLocale="kn_IN"
         android:imeSubtypeMode="keyboard"
         android:imeSubtypeExtraValue="KeyboardLayoutSet=qwerty" />
     <subtype
         android:label="@string/subtype_nudi"
+        android:icon="@drawable/kannada_nudi_logo"
         android:imeSubtypeLocale="kn_IN"
         android:imeSubtypeMode="keyboard" />
 </input-method>
