@@ -20,29 +20,9 @@ window.quillInterop = {
         this.quill = new Quill(elementId, {
             theme: 'snow',
             modules: {
-                toolbar: [
-                    [{ 'font': Font.whitelist }, { 'size': [] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'script': 'sub' }, { 'script': 'super' }],
-                    [{ 'header': 1 }, { 'header': 2 }, 'blockquote', 'code-block'],
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-                    [{ 'direction': 'rtl' }, { 'align': [] }],
-                    ['link', 'image', 'video', 'formula'],
-                    ['clean']
-                ]
+                toolbar: '#quill-toolbar-container'
             }
         });
-
-        // Move the generated toolbar to our custom target
-        const toolbar = document.querySelector('.ql-toolbar');
-        const target = document.getElementById('quill-toolbar-target');
-        if (toolbar && target) {
-            target.appendChild(toolbar);
-        } else {
-            console.warn("Could not move Quill toolbar. Elements not found.");
-        }
 
         // Disable predictive text features to prevent mobile keyboard interference
         if (this.quill.root) {
