@@ -58,3 +58,20 @@ main[b-auduccc7mo] {
     padding: 0.5rem;
     z-index: 1000;
 }
+
+.header-container[b-auduccc7mo] {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+    padding-bottom: 10px; /* Optional spacing */
+}
+
+.header-logo[b-auduccc7mo] {
+    position: relative;
+    left: 0;
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
+}
