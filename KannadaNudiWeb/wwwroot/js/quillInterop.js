@@ -52,60 +52,26 @@ window.quillInterop = {
 
             if (source === 'user' && dotNetReference) {
                 dotNetReference.invokeMethodAsync('OnSelectionChanged');
+
+                // Dictionary Lookup on Selection
+                if (range && range.length > 0) {
+                    const text = window.quillInterop.quill.getText(range.index, range.length);
+                    // Basic trim to avoid looking up whitespace
+                    const trimmedText = text.trim();
+                    if (trimmedText.length > 0) {
+                        const bounds = window.quillInterop.quill.getBounds(range.index, range.length);
+                        const editorRect = window.quillInterop.quill.container.getBoundingClientRect();
+                        const x = editorRect.left + bounds.left + window.scrollX;
+                        const y = editorRect.top + bounds.bottom + window.scrollY; // Bottom of the selection
+
+                        console.log("Selection for dictionary:", trimmedText);
+                        dotNetReference.invokeMethodAsync('OnWordSelected', trimmedText, x, y);
+                    }
+                } else {
+                    // Clear tooltip if no selection
+                    dotNetReference.invokeMethodAsync('OnWordSelected', "", 0, 0);
+                }
             }
-        });
-
-        // Click handler for dictionary
-        this.quill.root.addEventListener('click', (e) => {
-             // We use a small timeout to let Quill update the selection first
-             setTimeout(() => {
-                 const range = this.quill.getSelection(true);
-                 if (range) {
-                     const text = this.quill.getText();
-                     // Find word boundaries around range.index
-                     // We look for spaces or punctuation to delimit words
-                     // Simple regex approach: expand left and right until non-word char
-
-                     let start = range.index;
-                     let end = range.index;
-
-                     // Move start back
-                     while (start > 0) {
-                         const char = text[start - 1];
-                         // Allow Kannada chars, English chars, numbers. Break on space/punctuation
-                         if (this._isWordChar(char)) {
-                             start--;
-                         } else {
-                             break;
-                         }
-                     }
-
-                     // Move end forward
-                     while (end < text.length) {
-                         const char = text[end];
-                         if (this._isWordChar(char)) {
-                             end++;
-                         } else {
-                             break;
-                         }
-                     }
-
-                     if (end > start) {
-                         const word = text.substring(start, end);
-                         const bounds = this.quill.getBounds(start, end - start);
-                         // Convert bounds to page coordinates
-                         const editorRect = this.quill.container.getBoundingClientRect();
-
-                         const x = editorRect.left + bounds.left + window.scrollX;
-                         const y = editorRect.top + bounds.bottom + window.scrollY; // Bottom of the word
-
-                         console.log("Word clicked:", word, x, y);
-                         if (this.dotNetRef) {
-                             this.dotNetRef.invokeMethodAsync('OnWordSelected', word, x, y);
-                         }
-                     }
-                 }
-             }, 10);
         });
 
         // Mobile Input Support via text-change

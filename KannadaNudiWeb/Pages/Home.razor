@@ -214,8 +214,12 @@
     [JSInvokable]
     public void OnWordSelected(string word, double x, double y)
     {
-        Console.WriteLine($"Word selected: {word}");
-        if (string.IsNullOrWhiteSpace(word)) return;
+        Console.WriteLine($"Word selected: '{word}'");
+        if (string.IsNullOrWhiteSpace(word))
+        {
+            tooltip?.Close();
+            return;
+        }
 
         var definitions = DictionaryService.GetDefinition(word);
         if (definitions.Any())
@@ -224,6 +228,21 @@
             tooltipX = x;
             tooltipY = y;
             tooltipDefinitions = definitions;
+            tooltip?.Show();
+            StateHasChanged();
+        }
+        else
+        {
+            // Optionally close if no definition found, or show "No definition"
+            // For now, let's close it if user selects a random string with no meaning
+            // Or we could show "No definition found" inside the tooltip as previously implemented in razor
+            // But if the user selects empty space or clears selection, we must close.
+
+            // If the user selected a valid word but no definition exists:
+            tooltipWord = word;
+            tooltipX = x;
+            tooltipY = y;
+            tooltipDefinitions = definitions; // Empty list
             tooltip?.Show();
             StateHasChanged();
         }
