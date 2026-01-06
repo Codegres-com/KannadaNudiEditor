@@ -43,10 +43,16 @@
          <InputFile OnChange="LoadDocument" class="file-input-hidden" id="fileUpload" />
          <label for="fileUpload" class="btn btn-secondary"><span class="bi bi-folder2-open"></span> Open</label>
     </div>
+
+    <div class="toolbar-group">
+        <button class="btn btn-info" @onclick="OpenPageSetup">
+            <span class="bi bi-gear"></span> Page Setup
+        </button>
+    </div>
 </div>
 
 <div id="editor-wrapper" tabindex="0" style="outline:none;">
-    <div id="quill-editor"></div>
+    <div id="quill-editor" style="@CurrentPageStyle"></div>
 </div>
 
 @if (showSaveModal)
@@ -77,7 +83,51 @@
     </div>
 }
 
-<!-- Removed <script> block, logic moved to quillInterop.js -->
+@if (showPageSetupModal)
+{
+    <div class="modal-backdrop show"></div>
+    <div class="modal show" style="display:block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Page Setup</h5>
+                    <button type="button" class="btn-close" @onclick="ClosePageSetup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Size</label>
+                        <select class="form-select" @bind="pageSettings.PageSize">
+                            <option value="A4">A4</option>
+                            <option value="Letter">Letter</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Margin Top (mm)</label>
+                            <input type="number" class="form-control" @bind="pageSettings.MarginTop" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Margin Bottom (mm)</label>
+                            <input type="number" class="form-control" @bind="pageSettings.MarginBottom" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Margin Left (mm)</label>
+                            <input type="number" class="form-control" @bind="pageSettings.MarginLeft" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Margin Right (mm)</label>
+                            <input type="number" class="form-control" @bind="pageSettings.MarginRight" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="ClosePageSetup">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="ApplyPageSetup">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     .toolbar-container {
@@ -107,16 +157,56 @@
         }
     }
 
+    /* Print Layout Styles */
     #editor-wrapper {
         flex: 1;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow-y: auto; /* Allow scrolling of the desk */
+        background-color: #555; /* Dark gray desk background */
+        align-items: center; /* Center the page */
+        padding: 20px;
     }
 
     #quill-editor {
-        flex: 1;
-        overflow: hidden;
+        /* Container for the page - styles controlled via C# inline styles */
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Make toolbar sticky */
+    .ql-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: #fff;
+        border-bottom: 1px solid #ccc;
+    }
+
+    /* The actual page look */
+    .ql-editor {
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+
+        /* Dimensions from CSS Variables */
+        width: var(--page-width, 210mm);
+        min-height: var(--page-height, 297mm);
+        padding: var(--page-margin-top, 25mm) var(--page-margin-right, 25mm) var(--page-margin-bottom, 25mm) var(--page-margin-left, 25mm) !important;
+
+        /* Remove Quill's default overflow to let it grow */
+        overflow-y: visible !important;
+
+        /* Visual Page Breaks */
+        background-image: linear-gradient(to bottom, transparent calc(var(--page-height) - 1px), #ccc calc(var(--page-height) - 1px), #ccc var(--page-height));
+        background-size: 100% var(--page-height);
+        background-repeat: repeat-y;
+
+        margin-bottom: 20px;
+    }
+
+    /* Ensure content inside doesn't overflow horizontally */
+    .ql-editor > * {
+        max-width: 100%;
     }
 
     .file-input-hidden {
@@ -125,6 +215,39 @@
     .modal-backdrop {
         background-color: rgba(0,0,0,0.5);
     }
+
+    @@media print {
+        body {
+            background-color: white;
+            overflow: visible;
+            height: auto;
+        }
+
+        .toolbar-container, .modal-backdrop, .modal, .ql-toolbar {
+            display: none !important;
+        }
+
+        #editor-wrapper {
+            background-color: white;
+            padding: 0;
+            overflow: visible;
+            height: auto;
+            display: block;
+        }
+
+        .ql-editor {
+            box-shadow: none;
+            margin: 0;
+            width: 100%;
+            min-height: auto;
+            /* In print, we let the browser handle pagination, but we can enforce size */
+        }
+
+        @@page {
+            size: var(--page-width) var(--page-height);
+            margin: 0; /* We handle margins via padding */
+        }
+    }
 </style>
 
 @code {
@@ -132,13 +255,27 @@
 
     bool isListening = false;
     bool showSaveModal = false;
+    bool showPageSetupModal = false;
     string saveFileName = "Document";
     string speechLang = "kn-IN";
     DotNetObjectReference<Home>? objRef;
 
+    class PageSettingsModel
+    {
+        public string PageSize { get; set; } = "A4";
+        public int MarginTop { get; set; } = 25;
+        public int MarginBottom { get; set; } = 25;
+        public int MarginLeft { get; set; } = 25;
+        public int MarginRight { get; set; } = 25;
+    }
+
+    PageSettingsModel pageSettings = new PageSettingsModel();
+    string CurrentPageStyle = "";
+
     protected override async Task OnInitializedAsync()
     {
         objRef = DotNetObjectReference.Create(this);
+        UpdatePageStyle(); // Initialize styles
         await TransliterationService.InitializeAsync();
         SpeechService.OnResult += OnSpeechResult;
         SpeechService.OnError += OnSpeechError;
@@ -149,9 +286,36 @@
         if (firstRender)
         {
             await JSRuntime.InvokeVoidAsync("quillInterop.init", "#quill-editor", objRef);
-            // Updated call to use namespaced function
             await JSRuntime.InvokeVoidAsync("quillInterop.registerKeyInterceptor", objRef);
         }
+    }
+
+    private void UpdatePageStyle()
+    {
+        string width = pageSettings.PageSize == "A4" ? "210mm" : "215.9mm";
+        string height = pageSettings.PageSize == "A4" ? "297mm" : "279.4mm";
+
+        CurrentPageStyle = $"--page-width: {width}; --page-height: {height}; " +
+                           $"--page-margin-top: {pageSettings.MarginTop}mm; " +
+                           $"--page-margin-bottom: {pageSettings.MarginBottom}mm; " +
+                           $"--page-margin-left: {pageSettings.MarginLeft}mm; " +
+                           $"--page-margin-right: {pageSettings.MarginRight}mm;";
+    }
+
+    private void OpenPageSetup()
+    {
+        showPageSetupModal = true;
+    }
+
+    private void ClosePageSetup()
+    {
+        showPageSetupModal = false;
+    }
+
+    private void ApplyPageSetup()
+    {
+        UpdatePageStyle();
+        ClosePageSetup();
     }
 
     private async Task OnInputModeChange(ChangeEventArgs args)
