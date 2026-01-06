@@ -35,6 +35,15 @@ window.quillInterop = {
             }
         });
 
+        // Move the generated toolbar to our custom target
+        const toolbar = document.querySelector('.ql-toolbar');
+        const target = document.getElementById('quill-toolbar-target');
+        if (toolbar && target) {
+            target.appendChild(toolbar);
+        } else {
+            console.warn("Could not move Quill toolbar. Elements not found.");
+        }
+
         // Disable predictive text features to prevent mobile keyboard interference
         if (this.quill.root) {
             this.quill.root.setAttribute('autocomplete', 'off');

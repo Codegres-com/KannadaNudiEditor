@@ -6,123 +6,158 @@
 
 <PageTitle>Kannada Nudi Editor</PageTitle>
 
-<div class="toolbar-container">
-    <div class="toolbar-group">
-        <label class="toolbar-label">Input Mode:</label>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="inputModeSwitch" checked="@IsKannadaInput" @onchange="OnInputModeChange">
-            <label class="form-check-label" for="inputModeSwitch">@(IsKannadaInput ? "KAN" : "ENG")</label>
+<div class="app-layout">
+    <!-- Sticky Header containing Custom Toolbar and Quill Toolbar -->
+    <div class="sticky-header">
+        <div class="toolbar-container">
+            <div class="toolbar-section left">
+                <div class="brand-logo">
+                    <!-- Placeholder for branding if needed, or just grouping -->
+                    <span class="bi bi-keyboard-fill me-2"></span> NudiWeb
+                </div>
+            </div>
+
+            <div class="toolbar-section center">
+                 <!-- Input Mode Switch -->
+                <div class="tool-item">
+                    <div class="form-check form-switch custom-switch">
+                        <input class="form-check-input" type="checkbox" id="inputModeSwitch" checked="@IsKannadaInput" @onchange="OnInputModeChange">
+                        <label class="form-check-label" for="inputModeSwitch">@(IsKannadaInput ? "KAN" : "ENG")</label>
+                    </div>
+                </div>
+
+                @if (IsKannadaInput)
+                {
+                    <div class="tool-item">
+                        <select class="form-select form-select-sm modern-select" @onchange="OnLayoutChange">
+                            <option value="Nudi">Nudi/KGP</option>
+                            <option value="Baraha">Baraha (Phonetic)</option>
+                        </select>
+                    </div>
+                }
+
+                <!-- Speech Controls -->
+                 <div class="tool-item">
+                     <button class="btn btn-sm btn-modern @(isListening ? "btn-danger-soft" : "btn-primary-soft")" @onclick="ToggleSpeech" title="@(isListening ? "Stop Speech" : "Start Speech")">
+                         <span class="bi bi-mic@(isListening ? "-fill" : "")"></span>
+                     </button>
+                     <select class="form-select form-select-sm modern-select ms-1" style="width:auto; display:inline-block;" @bind="speechLang">
+                         <option value="kn-IN">Kannada</option>
+                         <option value="en-IN">English</option>
+                     </select>
+                </div>
+            </div>
+
+            <div class="toolbar-section right">
+                 <!-- File Actions -->
+                 <div class="action-group">
+                     <InputFile OnChange="LoadDocument" class="file-input-hidden" id="fileUpload" />
+                     <label for="fileUpload" class="btn btn-sm btn-modern btn-icon" title="Open Document">
+                         <span class="bi bi-folder2-open"></span>
+                     </label>
+
+                     <button class="btn btn-sm btn-modern btn-icon" @onclick="SaveDocument" title="Save Document">
+                         <span class="bi bi-save"></span>
+                     </button>
+
+                     <button class="btn btn-sm btn-modern btn-icon" @onclick="OpenPageSetup" title="Page Setup">
+                         <span class="bi bi-gear"></span>
+                     </button>
+                 </div>
+            </div>
         </div>
+
+        <!-- Target Container for Quill Toolbar -->
+        <div id="quill-toolbar-target"></div>
     </div>
 
-    @if (IsKannadaInput)
-    {
-        <div class="toolbar-group">
-            <label class="toolbar-label">Layout:</label>
-            <select class="form-select" style="width:auto; display:inline-block;" @onchange="OnLayoutChange">
-                <option value="Nudi">Nudi/KGP</option>
-                <option value="Baraha">Baraha (Phonetic)</option>
-            </select>
-        </div>
-    }
-
-    <div class="toolbar-group">
-         <button class="btn @(isListening ? "btn-danger" : "btn-primary")" @onclick="ToggleSpeech">
-             <span class="bi bi-mic"></span> @(isListening ? "Stop Speech" : "Start Speech")
-         </button>
-         <select class="form-select ms-2" style="width:auto; display:inline-block;" @bind="speechLang">
-             <option value="kn-IN">Kannada</option>
-             <option value="en-IN">English</option>
-         </select>
-    </div>
-
-    <div class="toolbar-group">
-         <button class="btn btn-secondary" @onclick="SaveDocument">
-             <span class="bi bi-save"></span> Save
-         </button>
-         <InputFile OnChange="LoadDocument" class="file-input-hidden" id="fileUpload" />
-         <label for="fileUpload" class="btn btn-secondary"><span class="bi bi-folder2-open"></span> Open</label>
-    </div>
-
-    <div class="toolbar-group">
-        <button class="btn btn-info" @onclick="OpenPageSetup">
-            <span class="bi bi-gear"></span> Page Setup
-        </button>
+    <!-- Scrollable Editor Desk -->
+    <div id="editor-wrapper" tabindex="0" style="outline:none;">
+        <div id="quill-editor" style="@CurrentPageStyle"></div>
     </div>
 </div>
 
-<div id="editor-wrapper" tabindex="0" style="outline:none;">
-    <div id="quill-editor" style="@CurrentPageStyle"></div>
-</div>
-
+<!-- Modern Save Modal -->
 @if (showSaveModal)
 {
     <div class="modal-backdrop show"></div>
-    <div class="modal show" style="display:block;" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Save Document</h5>
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modern-modal">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><span class="bi bi-save me-2"></span>Save Document</h5>
                     <button type="button" class="btn-close" @onclick="CloseModal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="filenameInput" class="form-label">Filename</label>
-                        <input type="text" class="form-control" id="filenameInput" @bind="saveFileName">
+                <div class="modal-body pt-4">
+                    <div class="mb-4">
+                        <label for="filenameInput" class="form-label text-muted small fw-bold text-uppercase">Filename</label>
+                        <input type="text" class="form-control form-control-modern" id="filenameInput" @bind="saveFileName" placeholder="Enter document name...">
                     </div>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary" @onclick="DownloadDocx">Download as DocX</button>
-                        <button class="btn btn-secondary" @onclick="DownloadTxt">Download as TXT</button>
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-modern-primary py-2" @onclick="DownloadDocx">
+                            <span class="bi bi-file-earmark-word me-2"></span>Download as DocX
+                        </button>
+                        <button class="btn btn-modern-secondary py-2" @onclick="DownloadTxt">
+                            <span class="bi bi-file-text me-2"></span>Download as TXT
+                        </button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 }
 
+<!-- Modern Page Setup Modal -->
 @if (showPageSetupModal)
 {
     <div class="modal-backdrop show"></div>
-    <div class="modal show" style="display:block;" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Page Setup</h5>
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modern-modal">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><span class="bi bi-layout-text-window-reverse me-2"></span>Page Setup</h5>
                     <button type="button" class="btn-close" @onclick="ClosePageSetup"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Size</label>
-                        <select class="form-select" @bind="pageSettings.PageSize">
-                            <option value="A4">A4</option>
-                            <option value="Letter">Letter</option>
+                <div class="modal-body pt-4">
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Paper Size</label>
+                        <select class="form-select form-select-modern" @bind="pageSettings.PageSize">
+                            <option value="A4">A4 (210mm x 297mm)</option>
+                            <option value="Letter">Letter (215.9mm x 279.4mm)</option>
                         </select>
                     </div>
+
+                    <label class="form-label text-muted small fw-bold text-uppercase mb-3">Margins (mm)</label>
                     <div class="row g-3">
                         <div class="col-6">
-                            <label class="form-label">Margin Top (mm)</label>
-                            <input type="number" class="form-control" @bind="pageSettings.MarginTop" />
+                            <div class="form-floating-modern">
+                                <label>Top</label>
+                                <input type="number" class="form-control form-control-modern" @bind="pageSettings.MarginTop" />
+                            </div>
                         </div>
                         <div class="col-6">
-                            <label class="form-label">Margin Bottom (mm)</label>
-                            <input type="number" class="form-control" @bind="pageSettings.MarginBottom" />
+                            <div class="form-floating-modern">
+                                <label>Bottom</label>
+                                <input type="number" class="form-control form-control-modern" @bind="pageSettings.MarginBottom" />
+                            </div>
                         </div>
                         <div class="col-6">
-                            <label class="form-label">Margin Left (mm)</label>
-                            <input type="number" class="form-control" @bind="pageSettings.MarginLeft" />
+                            <div class="form-floating-modern">
+                                <label>Left</label>
+                                <input type="number" class="form-control form-control-modern" @bind="pageSettings.MarginLeft" />
+                            </div>
                         </div>
                         <div class="col-6">
-                            <label class="form-label">Margin Right (mm)</label>
-                            <input type="number" class="form-control" @bind="pageSettings.MarginRight" />
+                            <div class="form-floating-modern">
+                                <label>Right</label>
+                                <input type="number" class="form-control form-control-modern" @bind="pageSettings.MarginRight" />
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="ClosePageSetup">Cancel</button>
-                    <button type="button" class="btn btn-primary" @onclick="ApplyPageSetup">Apply</button>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-sm btn-modern-text text-secondary" @onclick="ClosePageSetup">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-modern-primary px-4" @onclick="ApplyPageSetup">Apply Changes</button>
                 </div>
             </div>
         </div>
@@ -130,70 +165,151 @@
 }
 
 <style>
+    /* Layout Structure */
+    .app-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        background-color: #555; /* Desk Background */
+    }
+
+    .sticky-header {
+        flex-shrink: 0;
+        z-index: 2000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        background: #fff;
+    }
+
+    /* Custom Toolbar Styling */
     .toolbar-container {
         display: flex;
-        gap: 20px;
-        padding: 10px;
-        background: #f3f3f3;
-        border-bottom: 1px solid #ccc;
+        justify-content: space-between;
         align-items: center;
-        flex-shrink: 0;
+        padding: 8px 16px;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
     }
-    .toolbar-group {
+
+    .toolbar-section {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
 
-    @@media (max-width: 600px) {
-        .toolbar-container {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 10px;
-        }
-
-        .toolbar-group {
-            justify-content: space-between;
-        }
+    .brand-logo {
+        font-weight: 700;
+        color: #333;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
     }
 
-    /* Print Layout Styles */
+    .tool-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 8px;
+        background: #f8f9fa;
+        padding: 4px;
+        border-radius: 8px;
+    }
+
+    /* Modern Controls */
+    .btn-modern {
+        border: none;
+        background: transparent;
+        color: #555;
+        border-radius: 6px;
+        transition: all 0.2s;
+        padding: 6px 10px;
+    }
+    .btn-modern:hover {
+        background: #e9ecef;
+        color: #000;
+        transform: translateY(-1px);
+    }
+    .btn-icon {
+        padding: 6px 10px;
+        font-size: 1.1rem;
+    }
+
+    .btn-modern-primary {
+        background: #1b6ec2;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        transition: 0.2s;
+    }
+    .btn-modern-primary:hover {
+        background: #155595;
+    }
+
+    .btn-modern-secondary {
+        background: #e9ecef;
+        color: #333;
+        border: none;
+        border-radius: 8px;
+    }
+
+    .btn-danger-soft {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    .btn-primary-soft {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+
+    .modern-select {
+        border: 1px solid #eee;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        background-color: #f8f9fa;
+    }
+
+    /* Quill Toolbar Target */
+    #quill-toolbar-target {
+        background: #fff;
+        border-bottom: 1px solid #eee;
+    }
+    /* Override Quill Toolbar Styles for integration */
+    .ql-toolbar.ql-snow {
+        border: none !important;
+        padding: 8px 16px !important;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    /* Editor Desk */
     #editor-wrapper {
         flex: 1;
         display: flex;
         flex-direction: column;
-        overflow-y: auto; /* Allow scrolling of the desk */
-        background-color: #555; /* Dark gray desk background */
-        align-items: center; /* Center the page */
-        padding: 20px;
+        overflow-y: auto;
+        padding: 40px 20px;
+        align-items: center;
     }
 
     #quill-editor {
-        /* Container for the page - styles controlled via C# inline styles */
         display: flex;
         flex-direction: column;
     }
 
-    /* Make toolbar sticky */
-    .ql-toolbar {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        background: #fff;
-        border-bottom: 1px solid #ccc;
-    }
-
-    /* The actual page look */
+    /* The Paper */
     .ql-editor {
         background-color: white;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 30px rgba(0,0,0,0.15);
 
         /* Dimensions from CSS Variables */
         width: var(--page-width, 210mm);
         min-height: var(--page-height, 297mm);
         padding: var(--page-margin-top, 25mm) var(--page-margin-right, 25mm) var(--page-margin-bottom, 25mm) var(--page-margin-left, 25mm) !important;
 
-        /* Remove Quill's default overflow to let it grow */
         overflow-y: visible !important;
 
         /* Visual Page Breaks */
@@ -203,49 +319,95 @@
 
         margin-bottom: 20px;
     }
-
-    /* Ensure content inside doesn't overflow horizontally */
     .ql-editor > * {
         max-width: 100%;
+    }
+
+    /* Modern Modal Styling */
+    .modern-modal {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        backdrop-filter: blur(10px); /* Glass effect attempt */
+    }
+
+    .form-control-modern, .form-select-modern {
+        background-color: #f5f7fa;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 10px 15px;
+        transition: 0.2s;
+    }
+    .form-control-modern:focus, .form-select-modern:focus {
+        background-color: #fff;
+        border-color: #1b6ec2;
+        box-shadow: 0 0 0 4px rgba(27, 110, 194, 0.1);
+    }
+
+    .form-floating-modern label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #6c757d;
+        margin-bottom: 4px;
+        text-transform: uppercase;
     }
 
     .file-input-hidden {
         display: none;
     }
     .modal-backdrop {
-        background-color: rgba(0,0,0,0.5);
+        background-color: rgba(0,0,0,0.4);
+        backdrop-filter: blur(2px);
+    }
+
+    @@media (max-width: 768px) {
+        .toolbar-container {
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+        }
+        .toolbar-section {
+            width: 100%;
+            justify-content: space-between;
+        }
+        .toolbar-section.center {
+            justify-content: space-around;
+        }
+        #editor-wrapper {
+            padding: 10px;
+        }
     }
 
     @@media print {
         body {
-            background-color: white;
+            background: white;
             overflow: visible;
             height: auto;
         }
-
-        .toolbar-container, .modal-backdrop, .modal, .ql-toolbar {
+        .app-layout, .sticky-header {
+            display: block;
+            height: auto;
+            overflow: visible;
+        }
+        .sticky-header, .toolbar-container, .modal-backdrop, .modal {
             display: none !important;
         }
-
         #editor-wrapper {
-            background-color: white;
             padding: 0;
+            background: white;
             overflow: visible;
             height: auto;
             display: block;
         }
-
         .ql-editor {
             box-shadow: none;
             margin: 0;
             width: 100%;
-            min-height: auto;
-            /* In print, we let the browser handle pagination, but we can enforce size */
         }
-
         @@page {
             size: var(--page-width) var(--page-height);
-            margin: 0; /* We handle margins via padding */
+            margin: 0;
         }
     }
 </style>
