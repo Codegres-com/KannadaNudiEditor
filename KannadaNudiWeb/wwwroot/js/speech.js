@@ -45,7 +45,7 @@ window.speechInterop = {
 
     worker: null,
 
-    transcribeFile: function (inputId, dotNetReference) {
+    transcribeFile: async function (inputId, dotNetReference) {
         const input = document.getElementById(inputId);
         if (!input || !input.files || input.files.length === 0) {
             console.error("No file selected for transcription");
@@ -53,7 +53,16 @@ window.speechInterop = {
         }
 
         const file = input.files[0];
-        const audioUrl = URL.createObjectURL(file);
+
+        // Decode and resample audio on Main Thread
+        let audioData;
+        try {
+            audioData = await this.decodeAudio(file);
+        } catch (err) {
+            console.error("Audio decoding failed:", err);
+            dotNetReference.invokeMethodAsync('OnSpeechError', "Audio decoding failed: " + err.message);
+            return;
+        }
 
         if (!this.worker) {
             this.worker = new Worker('js/speech-worker.js', { type: 'module' });
@@ -63,23 +72,37 @@ window.speechInterop = {
                 if (message.type === 'success') {
                     console.log("Transcription success:", message.text);
                     dotNetReference.invokeMethodAsync('OnTranscriptionResult', message.text);
-                    // Revoke URL to free memory, but only if we know we are done with it.
-                    // Since logic is one-shot, we can probably revoke it or wait.
                 } else if (message.type === 'error') {
                     console.error("Transcription error:", message.error);
                     dotNetReference.invokeMethodAsync('OnSpeechError', message.error);
                 } else if (message.type === 'progress') {
                     console.log("Transcription progress:", message.data);
-                    // Optional: Update progress UI if we added a method for it
                 }
             };
         }
 
-        console.log("Sending file to worker for transcription...");
+        console.log("Sending audio data to worker for transcription...", audioData.length, "samples");
         this.worker.postMessage({
             type: 'transcribe',
-            audioUrl: audioUrl,
+            audio: audioData,
             language: null // Auto-detect
-        });
+        }, [audioData.buffer]); // Transfer buffer
+    },
+
+    decodeAudio: async function(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+
+        // Resample to 16000Hz (Whisper requirement)
+        const targetSampleRate = 16000;
+        const offlineCtx = new OfflineAudioContext(1, decoded.duration * targetSampleRate, targetSampleRate);
+        const source = offlineCtx.createBufferSource();
+        source.buffer = decoded;
+        source.connect(offlineCtx.destination);
+        source.start(0);
+
+        const rendered = await offlineCtx.startRendering();
+        return rendered.getChannelData(0);
     }
 };

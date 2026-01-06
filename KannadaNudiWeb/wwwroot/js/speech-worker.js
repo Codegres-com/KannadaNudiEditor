@@ -27,7 +27,7 @@ self.addEventListener('message', async (event) => {
             });
 
             // Perform transcription
-            const output = await transcriber(message.audioUrl, {
+            const output = await transcriber(message.audio, {
                  chunk_length_s: 30,
                  stride_length_s: 5,
                  language: message.language || null,
