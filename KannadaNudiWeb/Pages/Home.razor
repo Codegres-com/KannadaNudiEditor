@@ -251,10 +251,12 @@
         });
     }
 
-    private void OnSpeechError(string error)
+    [JSInvokable]
+    public void OnSpeechError(string error)
     {
         Console.WriteLine($"Speech Error: {error}");
         isListening = false;
+        isProcessingAudio = false;
         StateHasChanged();
     }
 
@@ -289,7 +291,8 @@
         try
         {
             var file = e.File;
-            if (file.Name.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+            if (file.Name.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ||
+                file.Name.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
             {
                 isProcessingAudio = true;
                 StateHasChanged();
