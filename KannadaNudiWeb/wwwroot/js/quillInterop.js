@@ -56,16 +56,28 @@ window.quillInterop = {
                 // Dictionary Lookup on Selection
                 if (range && range.length > 0) {
                     const text = window.quillInterop.quill.getText(range.index, range.length);
-                    // Basic trim to avoid looking up whitespace
                     const trimmedText = text.trim();
-                    if (trimmedText.length > 0) {
-                        const bounds = window.quillInterop.quill.getBounds(range.index, range.length);
-                        const editorRect = window.quillInterop.quill.container.getBoundingClientRect();
-                        const x = editorRect.left + bounds.left + window.scrollX;
-                        const y = editorRect.top + bounds.bottom + window.scrollY; // Bottom of the selection
 
-                        console.log("Selection for dictionary:", trimmedText);
-                        dotNetReference.invokeMethodAsync('OnWordSelected', trimmedText, x, y);
+                    if (trimmedText.length > 0) {
+                        // Use native browser selection to get robust viewport coordinates
+                        try {
+                            const nativeSelection = window.getSelection();
+                            if (nativeSelection.rangeCount > 0) {
+                                const nativeRange = nativeSelection.getRangeAt(0);
+                                const rect = nativeRange.getBoundingClientRect();
+
+                                // rect.bottom is viewport Y
+                                // rect.left is viewport X
+                                // We add a small buffer for spacing
+                                const x = rect.left;
+                                const y = rect.bottom + 5;
+
+                                console.log(`Selection: '${trimmedText}' at (${x}, ${y})`);
+                                dotNetReference.invokeMethodAsync('OnWordSelected', trimmedText, x, y);
+                            }
+                        } catch (e) {
+                            console.error("Error getting selection bounds:", e);
+                        }
                     }
                 } else {
                     // Clear tooltip if no selection
