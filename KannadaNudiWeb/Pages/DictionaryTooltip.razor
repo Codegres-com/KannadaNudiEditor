@@ -1,0 +1,70 @@
+@using KannadaNudiWeb.Services
+
+@if (IsVisible)
+{
+    <div class="dictionary-tooltip card shadow" style="top: @(Y)px; left: @(X)px;">
+        <div class="card-header d-flex justify-content-between align-items-center py-1 px-2">
+            <span class="fw-bold">@Word</span>
+            <button type="button" class="btn-close btn-close-white btn-sm" aria-label="Close" @onclick="Close"></button>
+        </div>
+        <div class="card-body p-2">
+            @if (Definitions != null && Definitions.Any())
+            {
+                <ul class="list-unstyled mb-0">
+                    @foreach (var def in Definitions)
+                    {
+                        <li class="mb-1">
+                            @if (!string.IsNullOrEmpty(def.Type))
+                            {
+                                <span class="badge bg-secondary me-1">@def.Type</span>
+                            }
+                            <span>@def.Meaning</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="mb-0 text-muted fst-italic">No definition found.</p>
+            }
+        </div>
+    </div>
+}
+
+<style>
+    .dictionary-tooltip {
+        position: absolute;
+        z-index: 1050;
+        width: 300px;
+        background-color: white;
+        border: 1px solid rgba(0,0,0,.125);
+        font-family: 'Poppins', sans-serif;
+    }
+    .dictionary-tooltip .card-header {
+        background-color: #c89963; /* Theme color */
+        color: white;
+    }
+</style>
+
+@code {
+    [Parameter] public double X { get; set; }
+    [Parameter] public double Y { get; set; }
+    [Parameter] public string Word { get; set; } = "";
+    [Parameter] public List<Definition> Definitions { get; set; } = new();
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    public bool IsVisible { get; set; } = false;
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+        OnClose.InvokeAsync();
+    }
+}

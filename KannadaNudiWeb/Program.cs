@@ -19,6 +19,7 @@ namespace KannadaNudiWeb
             builder.Services.AddScoped<FileConversionService>();
             builder.Services.AddScoped<TransliterationService>();
             builder.Services.AddScoped<SpeechService>();
+            builder.Services.AddScoped<DictionaryService>();
 
             await builder.Build().RunAsync();
         }

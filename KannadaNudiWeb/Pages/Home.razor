@@ -2,9 +2,12 @@
 @using KannadaNudiWeb.Services
 @inject TransliterationService TransliterationService
 @inject SpeechService SpeechService
+@inject DictionaryService DictionaryService
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Kannada Nudi Editor</PageTitle>
+
+<DictionaryTooltip @ref="tooltip" X="tooltipX" Y="tooltipY" Word="@tooltipWord" Definitions="tooltipDefinitions" OnClose="CloseTooltip" />
 
 <div class="toolbar-container">
     <div class="toolbar-group">
@@ -140,6 +143,7 @@
     {
         objRef = DotNetObjectReference.Create(this);
         await TransliterationService.InitializeAsync();
+        await DictionaryService.LoadDictionaryAsync();
         SpeechService.OnResult += OnSpeechResult;
         SpeechService.OnError += OnSpeechError;
     }
@@ -198,6 +202,36 @@
         {
             await JSRuntime.InvokeVoidAsync("quillInterop.insertText", result.text);
         }
+    }
+
+    // Dictionary Tooltip Logic
+    DictionaryTooltip? tooltip;
+    double tooltipX;
+    double tooltipY;
+    string tooltipWord = "";
+    List<Definition> tooltipDefinitions = new();
+
+    [JSInvokable]
+    public void OnWordSelected(string word, double x, double y)
+    {
+        Console.WriteLine($"Word selected: {word}");
+        if (string.IsNullOrWhiteSpace(word)) return;
+
+        var definitions = DictionaryService.GetDefinition(word);
+        if (definitions.Any())
+        {
+            tooltipWord = word;
+            tooltipX = x;
+            tooltipY = y;
+            tooltipDefinitions = definitions;
+            tooltip?.Show();
+            StateHasChanged();
+        }
+    }
+
+    private void CloseTooltip()
+    {
+        // Optional: Perform any additional cleanup if needed when tooltip closes
     }
 
     private async void ToggleSpeech()
