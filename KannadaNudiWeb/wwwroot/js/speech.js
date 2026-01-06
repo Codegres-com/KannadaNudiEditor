@@ -41,5 +41,45 @@ window.speechInterop = {
             this.recognition.stop();
             this.recognition = null;
         }
+    },
+
+    worker: null,
+
+    transcribeFile: function (inputId, dotNetReference) {
+        const input = document.getElementById(inputId);
+        if (!input || !input.files || input.files.length === 0) {
+            console.error("No file selected for transcription");
+            return;
+        }
+
+        const file = input.files[0];
+        const audioUrl = URL.createObjectURL(file);
+
+        if (!this.worker) {
+            this.worker = new Worker('js/speech-worker.js', { type: 'module' });
+
+            this.worker.onmessage = (e) => {
+                const message = e.data;
+                if (message.type === 'success') {
+                    console.log("Transcription success:", message.text);
+                    dotNetReference.invokeMethodAsync('OnTranscriptionResult', message.text);
+                    // Revoke URL to free memory, but only if we know we are done with it.
+                    // Since logic is one-shot, we can probably revoke it or wait.
+                } else if (message.type === 'error') {
+                    console.error("Transcription error:", message.error);
+                    dotNetReference.invokeMethodAsync('OnSpeechError', message.error);
+                } else if (message.type === 'progress') {
+                    console.log("Transcription progress:", message.data);
+                    // Optional: Update progress UI if we added a method for it
+                }
+            };
+        }
+
+        console.log("Sending file to worker for transcription...");
+        this.worker.postMessage({
+            type: 'transcribe',
+            audioUrl: audioUrl,
+            language: null // Auto-detect
+        });
     }
 };
