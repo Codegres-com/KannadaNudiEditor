@@ -17,9 +17,31 @@ window.quillInterop = {
         Font.whitelist = ['nudiparijatha', 'nudi-01-e', 'nudi-01-k', 'nudi-02-e', 'nudi-05-e', 'nudi-10-e'];
         Quill.register(Font, true);
 
+        // Register Quill Better Table
+        if (window.QuillBetterTable) {
+            Quill.register({
+                'modules/better-table': window.QuillBetterTable
+            }, true);
+        } else {
+            console.warn("QuillBetterTable not found");
+        }
+
         this.quill = new Quill(elementId, {
             theme: 'snow',
             modules: {
+                table: false,
+                'better-table': {
+                    operationMenu: {
+                        items: {
+                            unmergeCells: {
+                                text: 'Unmerge Cells'
+                            }
+                        }
+                    }
+                },
+                keyboard: {
+                    bindings: window.QuillBetterTable ? window.QuillBetterTable.keyboardBindings : {}
+                },
                 toolbar: [
                     [{ 'font': Font.whitelist }, { 'size': [] }],
                     ['bold', 'italic', 'underline', 'strike'],
@@ -233,5 +255,106 @@ window.quillInterop = {
     setKannadaMode: function (val) {
         console.log("Setting Kannada Mode:", val);
         window.isKannadaMode = val;
+    },
+
+    undo: function() {
+        if (this.quill) this.quill.history.undo();
+    },
+
+    redo: function() {
+        if (this.quill) this.quill.history.redo();
+    },
+
+    copyText: async function() {
+        if (!this.quill) return;
+        this.quill.focus();
+        try {
+            // Try execCommand first to preserve rich text formatting
+            const successful = document.execCommand('copy');
+            if (successful) {
+                console.log('Rich text copied via execCommand');
+                return;
+            }
+        } catch (err) {
+            console.warn('execCommand copy failed', err);
+        }
+
+        // Fallback to plain text via Clipboard API
+        const range = this.quill.getSelection();
+        if (range && range.length > 0) {
+            const text = this.quill.getText(range.index, range.length);
+            try {
+                await navigator.clipboard.writeText(text);
+                console.log('Text copied to clipboard (Plain)');
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
+        }
+    },
+
+    pasteText: async function() {
+        if (!this.quill) return;
+        this.quill.focus();
+
+        // Try Async Clipboard API for HTML (Rich Text)
+        try {
+            const items = await navigator.clipboard.read();
+            for (const item of items) {
+                if (item.types.includes('text/html')) {
+                    const blob = await item.getType('text/html');
+                    const html = await blob.text();
+
+                    const range = this.quill.getSelection(true);
+                    if (range) {
+                        this.quill.deleteText(range.index, range.length);
+                        this.quill.clipboard.dangerouslyPasteHTML(range.index, html);
+                    } else {
+                        const len = this.quill.getLength();
+                        this.quill.clipboard.dangerouslyPasteHTML(len - 1, html);
+                    }
+                    return; // Success
+                }
+            }
+        } catch (err) {
+            console.warn('Clipboard.read() failed or permission denied, falling back to text', err);
+        }
+
+        // Fallback to plain text
+        try {
+            const text = await navigator.clipboard.readText();
+            const range = this.quill.getSelection(true);
+            if (range) {
+                this.quill.deleteText(range.index, range.length);
+                this.quill.insertText(range.index, text);
+            } else {
+                const len = this.quill.getLength();
+                this.quill.insertText(len - 1, text);
+            }
+        } catch (err) {
+            console.error('Failed to paste: ', err);
+        }
+    },
+
+    insertTable: function(rows, cols) {
+        if (!this.quill) return;
+        const module = this.quill.getModule('better-table');
+        if (module) {
+            module.insertTable(rows, cols);
+        } else {
+             console.error("Better Table module not found or not initialized");
+        }
+    },
+
+    toggleHighlight: function() {
+        if (!this.quill) return;
+        const range = this.quill.getSelection(true);
+        if (range) {
+            const format = this.quill.getFormat(range);
+            if (format.background === '#ffff00') {
+                this.quill.format('background', false);
+            } else {
+                this.quill.format('background', '#ffff00');
+            }
+        }
     }
 };
