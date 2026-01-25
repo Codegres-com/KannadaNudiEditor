@@ -18,19 +18,34 @@ window.quillInterop = {
         Quill.register(Font, true);
 
         // Register Quill Better Table
-        if (window.QuillBetterTable) {
-            Quill.register({
-                'modules/better-table': window.QuillBetterTable
-            }, true);
-        } else {
-            console.warn("QuillBetterTable not found");
-        }
+        var modulesConfig = {
+            toolbar: [
+                [{ 'font': Font.whitelist }, { 'size': [] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'script': 'sub' }, { 'script': 'super' }],
+                [{ 'header': 1 }, { 'header': 2 }, 'blockquote', 'code-block'],
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }, { 'align': [] }],
+                ['link', 'image', 'video', 'formula'],
+                ['clean']
+            ]
+        };
 
-        this.quill = new Quill(elementId, {
-            theme: 'snow',
-            modules: {
-                table: false,
-                'better-table': {
+        if (window.QuillBetterTable) {
+            var BetterTable = window.QuillBetterTable;
+            // Handle ESM/UMD mismatch where class might be in .default
+            if (typeof BetterTable !== 'function' && BetterTable.default) {
+                BetterTable = BetterTable.default;
+            }
+
+            if (typeof BetterTable === 'function') {
+                Quill.register({
+                    'modules/better-table': BetterTable
+                }, true);
+
+                modulesConfig['better-table'] = {
                     operationMenu: {
                         items: {
                             unmergeCells: {
@@ -38,23 +53,23 @@ window.quillInterop = {
                             }
                         }
                     }
-                },
-                keyboard: {
-                    bindings: window.QuillBetterTable ? window.QuillBetterTable.keyboardBindings : {}
-                },
-                toolbar: [
-                    [{ 'font': Font.whitelist }, { 'size': [] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'script': 'sub' }, { 'script': 'super' }],
-                    [{ 'header': 1 }, { 'header': 2 }, 'blockquote', 'code-block'],
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-                    [{ 'direction': 'rtl' }, { 'align': [] }],
-                    ['link', 'image', 'video', 'formula'],
-                    ['clean']
-                ]
+                };
+
+                if (BetterTable.keyboardBindings) {
+                    modulesConfig.keyboard = {
+                        bindings: BetterTable.keyboardBindings
+                    };
+                }
+            } else {
+                console.error("QuillBetterTable found but not a valid constructor", window.QuillBetterTable);
             }
+        } else {
+            console.warn("QuillBetterTable not found");
+        }
+
+        this.quill = new Quill(elementId, {
+            theme: 'snow',
+            modules: modulesConfig
         });
 
         // Disable predictive text features to prevent mobile keyboard interference
