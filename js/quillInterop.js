@@ -33,8 +33,11 @@ window.quillInterop = {
             ]
         };
 
-        if (window.QuillBetterTable) {
-            var BetterTable = window.QuillBetterTable;
+        // Check for window.quillBetterTable (camelCase) as that's what the library exports
+        // Also check PascalCase as a fallback
+        var BetterTable = window.quillBetterTable || window.QuillBetterTable;
+
+        if (BetterTable) {
             // Handle ESM/UMD mismatch where class might be in .default
             if (typeof BetterTable !== 'function' && BetterTable.default) {
                 BetterTable = BetterTable.default;
@@ -61,10 +64,10 @@ window.quillInterop = {
                     };
                 }
             } else {
-                console.error("QuillBetterTable found but not a valid constructor", window.QuillBetterTable);
+                console.error("quillBetterTable found but not a valid constructor", BetterTable);
             }
         } else {
-            console.warn("QuillBetterTable not found");
+            console.warn("quillBetterTable not found. Make sure the script is loaded.");
         }
 
         this.quill = new Quill(elementId, {
