@@ -95,7 +95,11 @@ class KeyboardViewController: UIInputViewController {
             advanceToNextInputMode()
 
         case .modeChange:
-            // Todo: Implement numeric layout
+            // Handled by ViewModel
+            break
+
+        case .digitChange:
+            // Handled by ViewModel
             break
 
         case .layoutChange:

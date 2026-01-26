@@ -9,6 +9,7 @@ enum KeyboardAction {
     case globe
     case dictation
     case modeChange // 123
+    case digitChange // Toggle ASCII/Kannada digits
     case layoutChange // Nudi/Baraha
     case dismiss
 }
@@ -17,6 +18,8 @@ class KeyboardViewModel: ObservableObject {
     @Published var isShifted = false
     @Published var currentLayout: KeyboardLayout = .baraha
     @Published var candidates: [String] = []
+    @Published var isNumericMode = false
+    @Published var isKannadaDigits = false
 
     func toggleShift() {
         isShifted.toggle()
@@ -24,6 +27,14 @@ class KeyboardViewModel: ObservableObject {
 
     func toggleLayout() {
         currentLayout = (currentLayout == .baraha) ? .nudi : .baraha
+    }
+
+    func toggleNumericMode() {
+        isNumericMode.toggle()
+    }
+
+    func toggleDigitType() {
+        isKannadaDigits.toggle()
     }
 }
 
@@ -46,6 +57,12 @@ struct KeyboardView: View {
     let nudiRow3 = ["z", "x", "ಚ್", "ವ್", "ಬ್", "ಣ್", "ಮ್"]
     let nudiRow3Codes = ["z", "x", "c", "v", "b", "n", "m"]
 
+    // Numeric Layout keys
+    let asciiDigits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+    let kannadaDigits = ["೧", "೨", "೩", "೪", "೫", "೬", "೭", "೮", "೯", "೦"]
+    let symbolsRow1 = ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""]
+    let symbolsRow2 = [".", ",", "?", "!", "'"]
+
     var body: some View {
         VStack(spacing: 0) {
             // Candidates
@@ -55,22 +72,24 @@ struct KeyboardView: View {
 
             // Toolbar (Logo + Switch)
             HStack {
-                Text(viewModel.currentLayout == .baraha ? "Nudi (Phonetic)" : "Nudi (Direct)")
+                Text(getHeaderText())
                     .font(.caption)
                     .foregroundColor(Theme.keySpecialBackground)
                     .bold()
                 Spacer()
-                Button(action: {
-                    onAction(.layoutChange)
-                    viewModel.toggleLayout()
-                }) {
-                    Text("Switch Layout")
-                        .font(.caption)
-                        .bold()
-                        .padding(6)
-                        .foregroundColor(Theme.keySpecialText)
-                        .background(Theme.keySpecialBackground)
-                        .cornerRadius(4)
+                if !viewModel.isNumericMode {
+                    Button(action: {
+                        onAction(.layoutChange)
+                        viewModel.toggleLayout()
+                    }) {
+                        Text("Switch Layout")
+                            .font(.caption)
+                            .bold()
+                            .padding(6)
+                            .foregroundColor(Theme.keySpecialText)
+                            .background(Theme.keySpecialBackground)
+                            .cornerRadius(4)
+                    }
                 }
             }
             .padding(4)
@@ -78,7 +97,9 @@ struct KeyboardView: View {
 
             // Keys
             VStack(spacing: 8) {
-                if viewModel.currentLayout == .baraha {
+                if viewModel.isNumericMode {
+                    renderNumeric()
+                } else if viewModel.currentLayout == .baraha {
                     renderQwerty()
                 } else {
                     renderNudi()
@@ -89,6 +110,13 @@ struct KeyboardView: View {
             .padding(4)
             .background(Theme.keyboardBackground)
         }
+    }
+
+    func getHeaderText() -> String {
+        if viewModel.isNumericMode {
+            return "Numeric"
+        }
+        return viewModel.currentLayout == .baraha ? "Nudi (Phonetic)" : "Nudi (Direct)"
     }
 
     // MARK: - Render Methods
@@ -151,10 +179,49 @@ struct KeyboardView: View {
         }
     }
 
+    func renderNumeric() -> some View {
+        VStack(spacing: 10) {
+            // Row 1: Digits
+            HStack(spacing: 6) {
+                let digits = viewModel.isKannadaDigits ? kannadaDigits : asciiDigits
+                ForEach(digits, id: \.self) { key in
+                    keyButton(label: key, code: key)
+                }
+            }
+            // Row 2: Symbols
+            HStack(spacing: 6) {
+                ForEach(symbolsRow1, id: \.self) { key in
+                    keyButton(label: key, code: key)
+                }
+            }
+            // Row 3: Toggle + Symbols + Backspace
+            HStack(spacing: 6) {
+                // Toggle Digits Key
+                specialKey(label: viewModel.isKannadaDigits ? "123" : "೧೨೩", width: 60) {
+                    onAction(.digitChange)
+                    viewModel.toggleDigitType()
+                }
+
+                Spacer(minLength: 10)
+
+                ForEach(symbolsRow2, id: \.self) { key in
+                    keyButton(label: key, code: key)
+                }
+
+                Spacer(minLength: 10)
+
+                specialKey(label: "⌫", width: 40) {
+                    onAction(.backspace)
+                }
+            }
+        }
+    }
+
     func renderBottomRow() -> some View {
         HStack(spacing: 6) {
-            specialKey(label: "123", width: 40) {
-                // Not implemented fully
+            specialKey(label: viewModel.isNumericMode ? "ಅಆಇ" : "123", width: 40) {
+                onAction(.modeChange)
+                viewModel.toggleNumericMode()
             }
             specialKey(label: "🌐", width: 40) {
                 onAction(.globe)
