@@ -29,15 +29,18 @@
         </div>
     }
 
-    <div class="toolbar-group">
-         <button id="btn-speech" class="btn @(isListening ? "btn-danger" : "btn-primary")">
-             <span class="bi bi-mic"></span> @(isListening ? "Stop Speech" : "Start Speech")
-         </button>
-         <select id="select-speech-lang" class="form-select ms-2" style="width:auto; display:inline-block;" @bind="speechLang">
-             <option value="kn-IN">Kannada</option>
-             <option value="en-IN">English</option>
-         </select>
-    </div>
+    @if (isSpeechSupported)
+    {
+        <div class="toolbar-group">
+            <button id="btn-speech" class="btn @(isListening ? "btn-danger" : "btn-primary")" @onclick="ToggleSpeech">
+                <span class="bi bi-mic"></span> @(isListening ? "Stop Speech" : "Start Speech")
+            </button>
+            <select id="select-speech-lang" class="form-select ms-2" style="width:auto; display:inline-block;" @bind="speechLang">
+                <option value="kn-IN">Kannada</option>
+                <option value="en-IN">English</option>
+            </select>
+        </div>
+    }
 
     <div class="toolbar-group">
         <div class="btn-group" role="group">
@@ -187,6 +190,7 @@
     public bool IsKannadaInput { get; set; } = true;
 
     bool isListening = false;
+    bool isSpeechSupported = false;
     bool showSaveModal = false;
     string saveFileName = "Document";
     string speechLang = "kn-IN";
@@ -211,8 +215,12 @@
             await JSRuntime.InvokeVoidAsync("quillInterop.registerKeyInterceptor", objRef);
             await JSRuntime.InvokeVoidAsync("quillInterop.setKannadaMode", IsKannadaInput);
 
-            // Initialize Speech button listener
-            await SpeechService.InitializeAsync("btn-speech", "select-speech-lang");
+            // Initialize Speech service (set DotNetRef)
+            await SpeechService.InitializeAsync();
+
+            // Check speech support
+            isSpeechSupported = await SpeechService.IsSupportedAsync();
+            StateHasChanged();
         }
     }
 
@@ -262,7 +270,17 @@
         }
     }
 
-    // ToggleSpeech removed as logic is now handled in JS via InitializeAsync
+    private async Task ToggleSpeech()
+    {
+        if (isListening)
+        {
+            await SpeechService.StopAsync();
+        }
+        else
+        {
+            await SpeechService.StartAsync(speechLang);
+        }
+    }
 
     private void OnSpeechResult(string text)
     {

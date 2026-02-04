@@ -19,25 +19,44 @@ namespace KannadaNudiWeb.Services
             _jsRuntime = jsRuntime;
         }
 
-        public async Task InitializeAsync(string triggerId, string langSelectId)
+        public async Task InitializeAsync()
         {
             _objRef = DotNetObjectReference.Create(this);
-            await _jsRuntime.InvokeVoidAsync("speechInterop.init", _objRef, triggerId, langSelectId);
+            await _jsRuntime.InvokeVoidAsync("speechInterop.init", _objRef);
+        }
+
+        public async Task<bool> IsSupportedAsync()
+        {
+            return await _jsRuntime.InvokeAsync<bool>("speechInterop.isSupported");
         }
 
         public async Task StartAsync(string languageCode = "kn-IN")
         {
-            // Kept for backward compatibility or direct invocation if needed
             if (_objRef == null)
             {
-                _objRef = DotNetObjectReference.Create(this);
+                await InitializeAsync();
             }
-            await _jsRuntime.InvokeVoidAsync("speechInterop.start", _objRef, languageCode);
+
+            if (_jsRuntime is IJSInProcessRuntime inProcess)
+            {
+                inProcess.InvokeVoid("speechInterop.start", languageCode);
+            }
+            else
+            {
+                await _jsRuntime.InvokeVoidAsync("speechInterop.start", languageCode);
+            }
         }
 
         public async Task StopAsync()
         {
-            await _jsRuntime.InvokeVoidAsync("speechInterop.stop");
+            if (_jsRuntime is IJSInProcessRuntime inProcess)
+            {
+                inProcess.InvokeVoid("speechInterop.stop");
+            }
+            else
+            {
+                await _jsRuntime.InvokeVoidAsync("speechInterop.stop");
+            }
         }
 
         [JSInvokable]
