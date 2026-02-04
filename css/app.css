@@ -48,6 +48,13 @@ h1:focus {
     font-size: 200%;
 }
 
+@media (max-width: 576px) {
+    .ql-editor {
+        font-size: 150%; /* Smaller font size on mobile */
+        padding: 12px; /* Adjust padding if needed */
+    }
+}
+
 a, .btn-link {
     color: #0071c1;
 }
