@@ -98,7 +98,7 @@ window.quillInterop = {
             }
         });
 
-        // Mobile Input Support via text-change
+        // Mobile Input Support via text-change (Fallback)
         this.quill.on('text-change', (delta, oldDelta, source) => {
             if (source === 'user' && window.isKannadaMode) {
                 if (!this.dotNetRef) return;
@@ -114,20 +114,21 @@ window.quillInterop = {
                     } else if (op.insert && typeof op.insert === 'string') {
                         // Handle single character insertions (excluding newlines)
                         if (op.insert.length === 1 && op.insert !== '\n') {
-                            // Update timestamp to prevent selection-change from clearing buffer
-                            this.lastKeyHandledTime = Date.now();
 
-                            // Revert the user's insertion immediately by deleting it
-                            this.quill.deleteText(index, op.insert.length, 'silent');
-
-                            // Deduplication Check
-                            if (window.quillInterop.lastProcessedSource === 'keydown' &&
-                                Date.now() - window.quillInterop.lastProcessedTime < 100 &&
+                            // Deduplication Check: If handled by beforeinput or keydown recently, skip
+                            if ((window.quillInterop.lastProcessedSource === 'beforeinput' || window.quillInterop.lastProcessedSource === 'keydown') &&
+                                Date.now() - window.quillInterop.lastProcessedTime < 200 &&
                                 window.quillInterop.lastProcessedKey === op.insert) {
                                 console.log("Skipping duplicate input from text-change:", op.insert);
                                 handled = true;
                                 break;
                             }
+
+                            // Update timestamp to prevent selection-change from clearing buffer
+                            this.lastKeyHandledTime = Date.now();
+
+                            // Revert the user's insertion immediately by deleting it
+                            this.quill.deleteText(index, op.insert.length, 'silent');
 
                             // Send the character to C# for transliteration
                             this.dotNetRef.invokeMethodAsync('ProcessKannadaKey', op.insert);
@@ -142,10 +143,9 @@ window.quillInterop = {
                         }
                         index += op.insert.length;
                     } else if (op.delete) {
-                         // Check if this deletion was already handled by keydown
+                         // Check if this deletion was already handled
                          const now = Date.now();
-                         // We only handle it if keydown didn't catch it recently
-                         if (now - this.lastKeyHandledTime > 100) {
+                         if (now - this.lastKeyHandledTime > 200) {
                              // Update timestamp
                              this.lastKeyHandledTime = Date.now();
 
@@ -248,51 +248,83 @@ window.quillInterop = {
         document.body.removeChild(element);
     },
 
-    // Input Interception Logic moved here
+    // Input Interception Logic
     registerKeyInterceptor: function (dotNetReference) {
-        // We use the container or editor div.
-        // Quill usually creates .ql-editor inside the container.
-        // We can listen on window or the container.
-        // Listening on container is safer.
-        const editorDiv = document.getElementById('quill-editor'); // This is the container passed to init
+        const editorDiv = document.getElementById('quill-editor');
 
         if(!editorDiv) {
             console.error("Quill editor div not found during registration");
             return;
         }
 
-        console.log("Registering key interceptor on #quill-editor");
+        console.log("Registering key interceptors on #quill-editor");
 
-        editorDiv.addEventListener('keydown', (e) => {
-            if (window.isKannadaMode) {
-                // Update time for ANY key activity to prevent aggressive buffer clearing
+        // Use beforeinput for modern input interception (Mobile/Desktop)
+        editorDiv.addEventListener('beforeinput', (e) => {
+             if (window.isKannadaMode) {
+                // Update time for ANY input activity to prevent buffer clearing
                 window.quillInterop.lastKeyHandledTime = Date.now();
 
-                console.log("Keydown intercepted (Kannada Mode):", e.key);
+                // Handle text insertion
+                if (e.inputType === 'insertText' && e.data && e.data.length === 1) {
+                    console.log("beforeinput intercepted:", e.data);
 
-                // Handle Backspace
+                    e.preventDefault();
+                    // Stop propagation to prevent Quill from seeing it if possible,
+                    // though preventDefault is usually enough for data.
+                    // e.stopPropagation();
+
+                    dotNetReference.invokeMethodAsync('ProcessKannadaKey', e.data);
+
+                    // Update state
+                    window.quillInterop.lastProcessedKey = e.data;
+                    window.quillInterop.lastProcessedTime = Date.now();
+                    window.quillInterop.lastProcessedSource = 'beforeinput';
+                }
+
+                // Handle Backspace (deleteContentBackward)
+                else if (e.inputType === 'deleteContentBackward') {
+                    console.log("beforeinput Backspace intercepted");
+                    e.preventDefault();
+
+                    dotNetReference.invokeMethodAsync('ProcessBackspace');
+
+                    window.quillInterop.lastProcessedTime = Date.now();
+                    window.quillInterop.lastProcessedSource = 'beforeinput';
+                }
+             }
+        }, true); // Capture phase
+
+        // Keep keydown for special keys or older browsers, but de-prioritize text input
+        editorDiv.addEventListener('keydown', (e) => {
+            if (window.isKannadaMode) {
+                window.quillInterop.lastKeyHandledTime = Date.now();
+
+                // Handle Backspace via keydown if beforeinput didn't catch it recently
                 if (e.key === 'Backspace') {
-                    console.log("Processing Backspace");
-                    // We notify C# to update buffer, but we let Quill perform the deletion normally.
+                    if (Date.now() - window.quillInterop.lastProcessedTime < 50 && window.quillInterop.lastProcessedSource === 'beforeinput') {
+                         console.log("Ignored keydown Backspace (handled by beforeinput)");
+                         return;
+                    }
+                    console.log("Processing Backspace via keydown fallback");
                     dotNetReference.invokeMethodAsync('ProcessBackspace');
                     return;
                 }
 
-                // Handle single chars
-                if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                    console.log("Preventing default and processing key:", e.key);
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    dotNetReference.invokeMethodAsync('ProcessKannadaKey', e.key);
-
-                    // Update state
-                    window.quillInterop.lastProcessedKey = e.key;
-                    window.quillInterop.lastProcessedTime = Date.now();
-                    window.quillInterop.lastProcessedSource = 'keydown';
+                // Handle single chars - FALLBACK ONLY
+                // If beforeinput is supported, it fires *before* the input.
+                // keydown fires before beforeinput.
+                // We don't want to handle it here if beforeinput is going to handle it.
+                // But we can't easily know if beforeinput *will* fire.
+                // However, almost all modern browsers support beforeinput.
+                // We'll trust beforeinput for characters and use text-change as the ultimate fallback.
+                // So we REMOVE the character handling from keydown to avoid double-firing or conflicts.
+                // Exception: Control keys
+                if (e.ctrlKey || e.altKey || e.metaKey) {
+                    return; // Let default happen for shortcuts
                 }
             }
-        }, true); // Capture phase
+        }, true);
     },
 
     setKannadaMode: function (val) {
