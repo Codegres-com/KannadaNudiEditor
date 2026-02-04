@@ -267,15 +267,6 @@ window.quillInterop = {
         console.log("Registering key interceptors on #quill-editor");
 
         // --- COMPOSITION HANDLING ---
-        // REMOVED aggressive preventDefault on compositionstart as it breaks Safari's internal state.
-        // Instead, we let composition happen but catch the RESULT in beforeinput or handle text-change.
-
-        // We still monitor composition to know if we are in a composed state?
-        // Actually, best to just let beforeinput handle 'insertCompositionText' and cancel THAT.
-        // That allows the composition to "start" (underline appears) but the "commit" is blocked.
-        // Wait, if we block commit, the underline stays?
-        // No, preventDefault on insertCompositionText usually cancels the commit and leaves the editor clean.
-
         editorDiv.addEventListener('compositionstart', (e) => {
              // Just logging. Do NOT prevent default here on Safari.
              console.log("Composition started");
@@ -286,8 +277,6 @@ window.quillInterop = {
 
         editorDiv.addEventListener('compositionend', (e) => {
              console.log("Composition ended", e.data);
-             // If data leaked through, we might need to clean up?
-             // But usually beforeinput catches the insert.
              if (window.isKannadaMode) {
                  window.quillInterop.lastKeyHandledTime = Date.now();
              }
@@ -303,18 +292,17 @@ window.quillInterop = {
                 // Log for debugging
                 console.log("beforeinput:", e.inputType, e.data);
 
-                // Handle text insertion types
-                if (e.inputType.startsWith('insert')) {
+                // Handle text insertion types (Typing, Predictive, Replacement)
+                // STRICTLY Check for types we want to intercept.
+                // Do NOT block 'insertParagraph' (Enter) or 'insertFromPaste' (Paste).
+                if (e.inputType === 'insertText' ||
+                    e.inputType === 'insertCompositionText' ||
+                    e.inputType === 'insertReplacementText') {
 
                     // Prevent the browser from inserting the text (English/Predictive)
                     e.preventDefault();
 
                     if (e.data) {
-                        // Handle potential multi-character input (e.g. from predictive text)
-                        // Note: If e.data is a "Replacement" text, it might replace current selection.
-                        // preventDefault stops that replacement.
-                        // We then insert our own logic.
-
                         const chars = Array.from(e.data);
                         chars.forEach(char => {
                              dotNetReference.invokeMethodAsync('ProcessKannadaKey', char);
