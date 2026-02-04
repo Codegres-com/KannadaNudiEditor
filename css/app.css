@@ -44,8 +44,14 @@ h1:focus {
 .ql-editor {
     flex: 1;
     overflow-y: auto;
-    font-family: 'Nudi Parijatha', 'Poppins', sans-serif;
+    /* Prioritize system fonts on iOS/Mac (Kannada Sangam MN) to ensure correct shaping,
+       then fall back to Nudi fonts or standard sans-serif. */
+    font-family: 'Kannada Sangam MN', 'Nudi Parijatha', 'Tunga', 'Mallige', 'Poppins', sans-serif;
     font-size: 200%;
+    /* Enable advanced text rendering for ligatures */
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-feature-settings: "kern" 1, "liga" 1;
 }
 
 @media (max-width: 576px) {
