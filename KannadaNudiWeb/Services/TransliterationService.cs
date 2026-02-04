@@ -15,14 +15,25 @@ namespace KannadaNudiWeb.Services
     public enum IndianLanguage
     {
         Kannada,
-        Hindi,     // Devanagari
+        Hindi,      // Devanagari
         Telugu,
         Tamil,
         Malayalam,
         Bengali,
         Gujarati,
         Odia,
-        Punjabi    // Gurmukhi
+        Punjabi,    // Gurmukhi
+        Assamese,   // Bengali Script
+        Sanskrit,   // Devanagari
+        Marathi,    // Devanagari
+        Nepali,     // Devanagari
+        Konkani,    // Devanagari
+        Bodo,       // Devanagari
+        Dogri,      // Devanagari
+        Maithili,   // Devanagari
+        Sindhi,     // Devanagari
+        Kashmiri,   // Devanagari
+        Manipuri    // Bengali Script
     }
 
     public class TransliterationService
@@ -42,7 +53,7 @@ namespace KannadaNudiWeb.Services
             { "t", "ತ" }, { "T", "ಥ" }, { "d", "ದ" }, { "D", "ಧ" }, { "n", "ನ" },
             { "p", "ಪ" }, { "P", "ಫ" }, { "b", "ಬ" }, { "B", "ಭ" }, { "m", "ಮ" },
             { "y", "ಯ" }, { "r", "ರ" }, { "l", "ಲ" }, { "v", "ವ" },
-            { "S", "ಶ" }, { "x", "ಷ" }, { "s", "ಸ" }, { "h", "ಹ" }, { "L", "ಳ" }
+            { "S", "ಶ್" }, { "x", "ಷ" }, { "s", "ಸ" }, { "h", "ಹ" }, { "L", "ಳ" }
         };
 
         private readonly Dictionary<string, string> _nudiVowels = new Dictionary<string, string>
@@ -232,8 +243,23 @@ namespace KannadaNudiWeb.Services
 
             switch (lang)
             {
-                case IndianLanguage.Hindi: return -0x380;
-                case IndianLanguage.Bengali: return -0x300;
+                case IndianLanguage.Hindi:
+                case IndianLanguage.Sanskrit:
+                case IndianLanguage.Marathi:
+                case IndianLanguage.Nepali:
+                case IndianLanguage.Konkani:
+                case IndianLanguage.Bodo:
+                case IndianLanguage.Dogri:
+                case IndianLanguage.Maithili:
+                case IndianLanguage.Sindhi:
+                case IndianLanguage.Kashmiri:
+                    return -0x380; // All Devanagari
+
+                case IndianLanguage.Bengali:
+                case IndianLanguage.Assamese:
+                case IndianLanguage.Manipuri:
+                    return -0x300; // Bengali Script
+
                 case IndianLanguage.Punjabi: return -0x280;
                 case IndianLanguage.Gujarati: return -0x200;
                 case IndianLanguage.Odia: return -0x180;
