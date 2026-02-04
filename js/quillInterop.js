@@ -189,12 +189,7 @@ window.quillInterop = {
 
     backspace: function (count) {
         if (this.quill) {
-            // Ensure we have a valid selection. If null, try to use length?
-            // Better to rely on getSelection(true) which forces focus/retrieval.
             let range = this.quill.getSelection(true);
-
-            // If range is still null (rare but possible), try to assume end of document?
-            // No, risky. But if we just typed, we should be focused.
             if (!range) {
                  this.quill.focus();
                  range = this.quill.getSelection(true);
@@ -272,37 +267,34 @@ window.quillInterop = {
         console.log("Registering key interceptors on #quill-editor");
 
         // --- COMPOSITION HANDLING ---
-        // Prevent composition (underlining/predictive text) entirely in Kannada mode
-        editorDiv.addEventListener('compositionstart', (e) => {
-            if (window.isKannadaMode) {
-                console.log("Composition start - Preventing");
-                // Note: preventDefault() on compositionstart usually cancels it in Chrome/Safari
-                // But sometimes we need to clear data.
-                e.preventDefault();
-                e.stopPropagation();
-                // Update buffer time to be safe
-                window.quillInterop.lastKeyHandledTime = Date.now();
-            }
-        }, true);
+        // REMOVED aggressive preventDefault on compositionstart as it breaks Safari's internal state.
+        // Instead, we let composition happen but catch the RESULT in beforeinput or handle text-change.
 
-        editorDiv.addEventListener('compositionupdate', (e) => {
+        // We still monitor composition to know if we are in a composed state?
+        // Actually, best to just let beforeinput handle 'insertCompositionText' and cancel THAT.
+        // That allows the composition to "start" (underline appears) but the "commit" is blocked.
+        // Wait, if we block commit, the underline stays?
+        // No, preventDefault on insertCompositionText usually cancels the commit and leaves the editor clean.
+
+        editorDiv.addEventListener('compositionstart', (e) => {
+             // Just logging. Do NOT prevent default here on Safari.
+             console.log("Composition started");
              if (window.isKannadaMode) {
-                 e.preventDefault();
-                 e.stopPropagation();
+                 window.quillInterop.lastKeyHandledTime = Date.now();
              }
         }, true);
 
         editorDiv.addEventListener('compositionend', (e) => {
+             console.log("Composition ended", e.data);
+             // If data leaked through, we might need to clean up?
+             // But usually beforeinput catches the insert.
              if (window.isKannadaMode) {
-                 // Even if it ends, we want to discard the result if possible,
-                 // but usually 'beforeinput' (insertCompositionText) handles the insertion.
-                 // We rely on beforeinput to block the text.
+                 window.quillInterop.lastKeyHandledTime = Date.now();
              }
         }, true);
 
 
         // --- INPUT HANDLING ---
-        // Use beforeinput for modern input interception (Mobile/Desktop)
         editorDiv.addEventListener('beforeinput', (e) => {
              if (window.isKannadaMode) {
                 // Update time for ANY input activity to prevent buffer clearing
@@ -312,41 +304,18 @@ window.quillInterop = {
                 console.log("beforeinput:", e.inputType, e.data);
 
                 // Handle text insertion types
-                // insertText: standard typing
-                // insertCompositionText: predictive text / composition confirmation
-                // insertReplacementText: spellcheck replacement (should we block? probably yes)
                 if (e.inputType.startsWith('insert')) {
 
+                    // Prevent the browser from inserting the text (English/Predictive)
                     e.preventDefault();
 
-                    // If we have data, process it.
-                    // For composition, data might be the full string?
-                    // Usually insertCompositionText has the committed string in e.data.
                     if (e.data) {
-                        // Split data into chars if multiple (rare for typing, common for paste/prediction)
-                        // But ProcessKannadaKey usually expects single chars?
-                        // If multiple chars, we should iterate.
-                        // However, standard typing is 1 char.
-                        // Predictive text might insert a word. "Hello"
-                        // Our system expects Key-by-Key.
-                        // If we send "Hello", TransliterationService might not handle it or treat it as one key.
-                        // It expects single keys usually.
-                        // Let's iterate if length > 1
-
-                        // BUT, for simple fixes, we assume user types char by char.
-                        // If e.data is "the", and we treat it as 't', 'h', 'e', it might work.
+                        // Handle potential multi-character input (e.g. from predictive text)
+                        // Note: If e.data is a "Replacement" text, it might replace current selection.
+                        // preventDefault stops that replacement.
+                        // We then insert our own logic.
 
                         const chars = Array.from(e.data);
-
-                        // We need to process sequentially. Since invokeMethodAsync is async,
-                        // we can't guarantee order if we fire them all at once?
-                        // Actually, Blazor signals are processed in order on the circuit usually.
-                        // But let's be careful.
-
-                        // For now, assume 1 char (typing).
-                        // If it's a word, we might have issues, but Nudi/Baraha are character-based IMEs.
-                        // Users shouldn't be using predictive words to type Kannada codes.
-
                         chars.forEach(char => {
                              dotNetReference.invokeMethodAsync('ProcessKannadaKey', char);
 
@@ -371,7 +340,7 @@ window.quillInterop = {
              }
         }, true); // Capture phase
 
-        // Keep keydown for special keys or older browsers, but de-prioritize text input
+        // Keep keydown for special keys or older browsers
         editorDiv.addEventListener('keydown', (e) => {
             if (window.isKannadaMode) {
                 window.quillInterop.lastKeyHandledTime = Date.now();
