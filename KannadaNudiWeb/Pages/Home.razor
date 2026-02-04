@@ -249,9 +249,13 @@
     }
 
     [JSInvokable]
-    public void ProcessBackspace()
+    public async Task ProcessBackspace()
     {
-        TransliterationService.RemoveLast();
+        bool shouldDeleteVisual = TransliterationService.HandleBackspace();
+        if (shouldDeleteVisual)
+        {
+            await JSRuntime.InvokeVoidAsync("quillInterop.backspace", 1);
+        }
     }
 
     [JSInvokable]

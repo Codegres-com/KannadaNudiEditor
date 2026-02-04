@@ -406,12 +406,25 @@ namespace KannadaNudiWeb.Services
             return "";
         }
 
-        public void RemoveLast()
+        public bool HandleBackspace()
         {
-            if (_buffer.Length > 0)
+            if (_buffer.Length == 0) return true;
+
+            char lastChar = _buffer[_buffer.Length - 1];
+            string lastKey = lastChar.ToString();
+            string bufferBefore = _buffer.ToString(0, _buffer.Length - 1);
+
+            _buffer.Length--;
+
+            if (CurrentLayout == KeyboardLayout.Nudi)
             {
-                _buffer.Length--;
+                // Check if the key was 'a' and it was used as a silent Matra
+                if (lastKey == "a" && IsNudiMatraContext(bufferBefore, lastKey))
+                {
+                    return false;
+                }
             }
+            return true;
         }
 
         private bool IsBarahaConsonant(string k)
