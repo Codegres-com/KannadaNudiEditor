@@ -329,8 +329,9 @@ window.quillInterop = {
                 // Handle Backspace (deleteContentBackward)
                 else if (e.inputType === 'deleteContentBackward') {
                     // Check if we just handled it in keydown
+                    // Use a slightly larger window (300ms) to be safe across slower devices
                     if (window.quillInterop.lastProcessedSource === 'keydown' &&
-                        Date.now() - window.quillInterop.lastProcessedTime < 200) {
+                        Date.now() - window.quillInterop.lastProcessedTime < 300) {
                         console.log("Ignoring beforeinput Backspace (handled by keydown)");
                         e.preventDefault();
                         return;
@@ -339,10 +340,12 @@ window.quillInterop = {
                     console.log("beforeinput Backspace intercepted");
                     e.preventDefault();
 
-                    dotNetReference.invokeMethodAsync('ProcessBackspace');
-
+                    // Sync BOTH timestamps
+                    window.quillInterop.lastKeyHandledTime = Date.now();
                     window.quillInterop.lastProcessedTime = Date.now();
                     window.quillInterop.lastProcessedSource = 'beforeinput';
+
+                    dotNetReference.invokeMethodAsync('ProcessBackspace');
                 }
              }
         }, true); // Capture phase
@@ -355,13 +358,14 @@ window.quillInterop = {
                 // Handle Backspace via keydown
                 if (e.key === 'Backspace') {
                     // Update state FIRST
-                    window.quillInterop.lastProcessedTime = Date.now();
+                    window.quillInterop.lastKeyHandledTime = Date.now(); // Update this to block text-change
+                    window.quillInterop.lastProcessedTime = Date.now();  // Update this to block beforeinput
                     window.quillInterop.lastProcessedSource = 'keydown';
 
                     console.log("Processing Backspace via keydown");
                     dotNetReference.invokeMethodAsync('ProcessBackspace');
 
-                    // Prevent default to try and stop beforeinput
+                    // Prevent default to try and stop beforeinput/native delete
                     e.preventDefault();
                     return;
                 }
