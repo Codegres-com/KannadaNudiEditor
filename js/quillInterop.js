@@ -88,7 +88,8 @@ window.quillInterop = {
 
         this.quill.on('selection-change', function(range, oldRange, source) {
             // Prevent buffer clearing if we just handled a key/input event recently
-            if (Date.now() - window.quillInterop.lastKeyHandledTime < 500) {
+            // Increased timeout to 2000ms to handle slower mobile typing/rendering updates
+            if (Date.now() - window.quillInterop.lastKeyHandledTime < 2000) {
                 console.log("Ignoring selection change due to recent input");
                 return;
             }
@@ -265,6 +266,16 @@ window.quillInterop = {
         }
 
         console.log("Registering key interceptors on #quill-editor");
+
+        // --- TOUCH HANDLING ---
+        editorDiv.addEventListener('touchstart', (e) => {
+             if (window.isKannadaMode) {
+                 console.log("Touchstart detected: Syncing selection to clear buffer");
+                 // Explicitly notify C# of selection change to reset transliteration buffer
+                 // This handles cases where user manually taps to move cursor
+                 dotNetReference.invokeMethodAsync('OnSelectionChanged');
+             }
+        }, { passive: true });
 
         // --- COMPOSITION HANDLING ---
         editorDiv.addEventListener('compositionstart', (e) => {

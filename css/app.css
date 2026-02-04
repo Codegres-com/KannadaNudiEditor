@@ -44,8 +44,13 @@ h1:focus {
 .ql-editor {
     flex: 1;
     overflow-y: auto;
-    /* Prioritize system fonts on iOS/Mac (Kannada Sangam MN) to ensure correct shaping,
-       then fall back to Nudi fonts or standard sans-serif. */
+    /*
+       Font Stack Strategy:
+       1. 'Kannada Sangam MN': Apple System Font. Essential for correct ligature shaping on iOS/macOS.
+          No import needed as it's pre-installed on Apple devices.
+       2. 'Nudi Parijatha': Custom font (imported via fonts.css). Default for Windows/Android.
+       3. 'Tunga', 'Mallige': Fallback system fonts for Windows/Linux.
+    */
     font-family: 'Kannada Sangam MN', 'Nudi Parijatha', 'Tunga', 'Mallige', 'Poppins', sans-serif;
     font-size: 200%;
     /* Enable advanced text rendering for ligatures */
@@ -102,4 +107,14 @@ a, .btn-link {
 
 .loading-progress-text:after {
     content: var(--blazor-load-percentage-text, "Loading");
+}
+
+/* iOS/Mac-specific override to ensure Kannada ligatures render correctly */
+@supports (-webkit-touch-callout: none) {
+    .ql-editor, .ql-editor * {
+        /* Force System Font on iOS to fix ligature rendering, overriding inline Quill styles */
+        font-family: 'Kannada Sangam MN', 'Nudi Parijatha', sans-serif !important;
+        font-feature-settings: "kern" 1, "liga" 1;
+        text-rendering: optimizeLegibility;
+    }
 }
