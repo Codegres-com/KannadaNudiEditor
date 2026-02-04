@@ -189,10 +189,22 @@ window.quillInterop = {
 
     backspace: function (count) {
         if (this.quill) {
-            const range = this.quill.getSelection(true);
+            // Ensure we have a valid selection. If null, try to use length?
+            // Better to rely on getSelection(true) which forces focus/retrieval.
+            let range = this.quill.getSelection(true);
+
+            // If range is still null (rare but possible), try to assume end of document?
+            // No, risky. But if we just typed, we should be focused.
+            if (!range) {
+                 this.quill.focus();
+                 range = this.quill.getSelection(true);
+            }
+
             if (range && range.index >= count) {
                 console.log("Backspacing count:", count);
                 this.quill.deleteText(range.index - count, count, 'api');
+            } else {
+                console.warn("Backspacing failed: Invalid range or index", range, count);
             }
         }
     },
@@ -259,27 +271,91 @@ window.quillInterop = {
 
         console.log("Registering key interceptors on #quill-editor");
 
+        // --- COMPOSITION HANDLING ---
+        // Prevent composition (underlining/predictive text) entirely in Kannada mode
+        editorDiv.addEventListener('compositionstart', (e) => {
+            if (window.isKannadaMode) {
+                console.log("Composition start - Preventing");
+                // Note: preventDefault() on compositionstart usually cancels it in Chrome/Safari
+                // But sometimes we need to clear data.
+                e.preventDefault();
+                e.stopPropagation();
+                // Update buffer time to be safe
+                window.quillInterop.lastKeyHandledTime = Date.now();
+            }
+        }, true);
+
+        editorDiv.addEventListener('compositionupdate', (e) => {
+             if (window.isKannadaMode) {
+                 e.preventDefault();
+                 e.stopPropagation();
+             }
+        }, true);
+
+        editorDiv.addEventListener('compositionend', (e) => {
+             if (window.isKannadaMode) {
+                 // Even if it ends, we want to discard the result if possible,
+                 // but usually 'beforeinput' (insertCompositionText) handles the insertion.
+                 // We rely on beforeinput to block the text.
+             }
+        }, true);
+
+
+        // --- INPUT HANDLING ---
         // Use beforeinput for modern input interception (Mobile/Desktop)
         editorDiv.addEventListener('beforeinput', (e) => {
              if (window.isKannadaMode) {
                 // Update time for ANY input activity to prevent buffer clearing
                 window.quillInterop.lastKeyHandledTime = Date.now();
 
-                // Handle text insertion
-                if (e.inputType === 'insertText' && e.data && e.data.length === 1) {
-                    console.log("beforeinput intercepted:", e.data);
+                // Log for debugging
+                console.log("beforeinput:", e.inputType, e.data);
+
+                // Handle text insertion types
+                // insertText: standard typing
+                // insertCompositionText: predictive text / composition confirmation
+                // insertReplacementText: spellcheck replacement (should we block? probably yes)
+                if (e.inputType.startsWith('insert')) {
 
                     e.preventDefault();
-                    // Stop propagation to prevent Quill from seeing it if possible,
-                    // though preventDefault is usually enough for data.
-                    // e.stopPropagation();
 
-                    dotNetReference.invokeMethodAsync('ProcessKannadaKey', e.data);
+                    // If we have data, process it.
+                    // For composition, data might be the full string?
+                    // Usually insertCompositionText has the committed string in e.data.
+                    if (e.data) {
+                        // Split data into chars if multiple (rare for typing, common for paste/prediction)
+                        // But ProcessKannadaKey usually expects single chars?
+                        // If multiple chars, we should iterate.
+                        // However, standard typing is 1 char.
+                        // Predictive text might insert a word. "Hello"
+                        // Our system expects Key-by-Key.
+                        // If we send "Hello", TransliterationService might not handle it or treat it as one key.
+                        // It expects single keys usually.
+                        // Let's iterate if length > 1
 
-                    // Update state
-                    window.quillInterop.lastProcessedKey = e.data;
-                    window.quillInterop.lastProcessedTime = Date.now();
-                    window.quillInterop.lastProcessedSource = 'beforeinput';
+                        // BUT, for simple fixes, we assume user types char by char.
+                        // If e.data is "the", and we treat it as 't', 'h', 'e', it might work.
+
+                        const chars = Array.from(e.data);
+
+                        // We need to process sequentially. Since invokeMethodAsync is async,
+                        // we can't guarantee order if we fire them all at once?
+                        // Actually, Blazor signals are processed in order on the circuit usually.
+                        // But let's be careful.
+
+                        // For now, assume 1 char (typing).
+                        // If it's a word, we might have issues, but Nudi/Baraha are character-based IMEs.
+                        // Users shouldn't be using predictive words to type Kannada codes.
+
+                        chars.forEach(char => {
+                             dotNetReference.invokeMethodAsync('ProcessKannadaKey', char);
+
+                             // Update state for deduplication
+                             window.quillInterop.lastProcessedKey = char;
+                             window.quillInterop.lastProcessedTime = Date.now();
+                             window.quillInterop.lastProcessedSource = 'beforeinput';
+                        });
+                    }
                 }
 
                 // Handle Backspace (deleteContentBackward)
@@ -311,15 +387,6 @@ window.quillInterop = {
                     return;
                 }
 
-                // Handle single chars - FALLBACK ONLY
-                // If beforeinput is supported, it fires *before* the input.
-                // keydown fires before beforeinput.
-                // We don't want to handle it here if beforeinput is going to handle it.
-                // But we can't easily know if beforeinput *will* fire.
-                // However, almost all modern browsers support beforeinput.
-                // We'll trust beforeinput for characters and use text-change as the ultimate fallback.
-                // So we REMOVE the character handling from keydown to avoid double-firing or conflicts.
-                // Exception: Control keys
                 if (e.ctrlKey || e.altKey || e.metaKey) {
                     return; // Let default happen for shortcuts
                 }
