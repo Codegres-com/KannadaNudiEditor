@@ -328,13 +328,24 @@ window.quillInterop = {
 
                 // Handle Backspace (deleteContentBackward)
                 else if (e.inputType === 'deleteContentBackward') {
+                    // Check if we just handled it in keydown
+                    // Use a slightly larger window (300ms) to be safe across slower devices
+                    if (window.quillInterop.lastProcessedSource === 'keydown' &&
+                        Date.now() - window.quillInterop.lastProcessedTime < 300) {
+                        console.log("Ignoring beforeinput Backspace (handled by keydown)");
+                        e.preventDefault();
+                        return;
+                    }
+
                     console.log("beforeinput Backspace intercepted");
                     e.preventDefault();
 
-                    dotNetReference.invokeMethodAsync('ProcessBackspace');
-
+                    // Sync BOTH timestamps
+                    window.quillInterop.lastKeyHandledTime = Date.now();
                     window.quillInterop.lastProcessedTime = Date.now();
                     window.quillInterop.lastProcessedSource = 'beforeinput';
+
+                    dotNetReference.invokeMethodAsync('ProcessBackspace');
                 }
              }
         }, true); // Capture phase
@@ -344,14 +355,18 @@ window.quillInterop = {
             if (window.isKannadaMode) {
                 window.quillInterop.lastKeyHandledTime = Date.now();
 
-                // Handle Backspace via keydown if beforeinput didn't catch it recently
+                // Handle Backspace via keydown
                 if (e.key === 'Backspace') {
-                    if (Date.now() - window.quillInterop.lastProcessedTime < 50 && window.quillInterop.lastProcessedSource === 'beforeinput') {
-                         console.log("Ignored keydown Backspace (handled by beforeinput)");
-                         return;
-                    }
-                    console.log("Processing Backspace via keydown fallback");
+                    // Update state FIRST
+                    window.quillInterop.lastKeyHandledTime = Date.now(); // Update this to block text-change
+                    window.quillInterop.lastProcessedTime = Date.now();  // Update this to block beforeinput
+                    window.quillInterop.lastProcessedSource = 'keydown';
+
+                    console.log("Processing Backspace via keydown");
                     dotNetReference.invokeMethodAsync('ProcessBackspace');
+
+                    // Prevent default to try and stop beforeinput/native delete
+                    e.preventDefault();
                     return;
                 }
 
