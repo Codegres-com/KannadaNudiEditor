@@ -374,5 +374,20 @@ window.quillInterop = {
                 this.quill.format('background', '#ffff00');
             }
         }
+    },
+
+    docToHtml: async function(fileBytes) {
+        if (!window.mammoth) {
+            console.error("Mammoth library not loaded");
+            return "";
+        }
+        try {
+            // fileBytes comes as a Uint8Array from Blazor
+            const result = await window.mammoth.convertToHtml({ arrayBuffer: fileBytes.buffer });
+            return result.value;
+        } catch (error) {
+            console.error("Error converting DocX:", error);
+            throw error;
+        }
     }
 };
