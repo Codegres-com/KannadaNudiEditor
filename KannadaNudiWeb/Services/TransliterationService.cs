@@ -12,12 +12,26 @@ namespace KannadaNudiWeb.Services
         Baraha
     }
 
+    public enum IndianLanguage
+    {
+        Kannada,
+        Hindi,     // Devanagari
+        Telugu,
+        Tamil,
+        Malayalam,
+        Bengali,
+        Gujarati,
+        Odia,
+        Punjabi    // Gurmukhi
+    }
+
     public class TransliterationService
     {
         private readonly FileConversionService _conversionService;
         private readonly StringBuilder _buffer = new StringBuilder();
 
         public KeyboardLayout CurrentLayout { get; private set; } = KeyboardLayout.Nudi;
+        public IndianLanguage CurrentLanguage { get; set; } = IndianLanguage.Kannada;
 
         // Nudi 6.1 Maps
         private readonly Dictionary<string, string> _nudiConsonants = new Dictionary<string, string>
@@ -159,13 +173,75 @@ namespace KannadaNudiWeb.Services
         {
             if (string.IsNullOrEmpty(key)) return ("", 0);
 
+            (string text, int backspaceCount) result;
+
             if (CurrentLayout == KeyboardLayout.Nudi)
             {
-                return GetNudiTransliteration(key);
+                result = GetNudiTransliteration(key);
             }
             else
             {
-                return GetBarahaTransliteration(key);
+                result = GetBarahaTransliteration(key);
+            }
+
+            // Convert result text to target language
+            if (CurrentLanguage != IndianLanguage.Kannada && !string.IsNullOrEmpty(result.text))
+            {
+                result.text = ConvertFromKannada(result.text);
+            }
+
+            return result;
+        }
+
+        private string ConvertFromKannada(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+
+            var sb = new StringBuilder();
+            int offset = GetOffsetForLanguage(CurrentLanguage);
+
+            foreach (char c in text)
+            {
+                // Check if character is in Kannada block (0C80 - 0CFF)
+                // Note: Generic diacritics (0300-036F) should NOT be shifted.
+                if (c >= 0x0C80 && c <= 0x0CFF)
+                {
+                    // Apply offset
+                    int newCharCode = c + offset;
+                    sb.Append((char)newCharCode);
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+
+        private int GetOffsetForLanguage(IndianLanguage lang)
+        {
+            // Kannada Base: 0x0C80
+            // Devanagari Base: 0x0900 (Diff: -0x380)
+            // Bengali Base: 0x0980 (Diff: -0x300)
+            // Gurmukhi Base: 0x0A00 (Diff: -0x280)
+            // Gujarati Base: 0x0A80 (Diff: -0x200)
+            // Oriya Base: 0x0B00 (Diff: -0x180)
+            // Tamil Base: 0x0B80 (Diff: -0x100)
+            // Telugu Base: 0x0C00 (Diff: -0x080)
+            // Malayalam Base: 0x0D00 (Diff: +0x080)
+
+            switch (lang)
+            {
+                case IndianLanguage.Hindi: return -0x380;
+                case IndianLanguage.Bengali: return -0x300;
+                case IndianLanguage.Punjabi: return -0x280;
+                case IndianLanguage.Gujarati: return -0x200;
+                case IndianLanguage.Odia: return -0x180;
+                case IndianLanguage.Tamil: return -0x100;
+                case IndianLanguage.Telugu: return -0x080;
+                case IndianLanguage.Malayalam: return 0x080;
+                case IndianLanguage.Kannada:
+                default: return 0;
             }
         }
 
