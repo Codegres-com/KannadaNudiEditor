@@ -2,6 +2,9 @@ window.quillInterop = {
     quill: null,
     dotNetRef: null,
     lastKeyHandledTime: 0,
+    lastProcessedKey: null,
+    lastProcessedTime: 0,
+    lastProcessedSource: null,
 
     init: function (elementId, dotNetReference) {
         if (!window.Quill) {
@@ -117,8 +120,23 @@ window.quillInterop = {
                             // Revert the user's insertion immediately by deleting it
                             this.quill.deleteText(index, op.insert.length, 'silent');
 
+                            // Deduplication Check
+                            if (window.quillInterop.lastProcessedSource === 'keydown' &&
+                                Date.now() - window.quillInterop.lastProcessedTime < 100 &&
+                                window.quillInterop.lastProcessedKey === op.insert) {
+                                console.log("Skipping duplicate input from text-change:", op.insert);
+                                handled = true;
+                                break;
+                            }
+
                             // Send the character to C# for transliteration
                             this.dotNetRef.invokeMethodAsync('ProcessKannadaKey', op.insert);
+
+                            // Update state
+                            window.quillInterop.lastProcessedKey = op.insert;
+                            window.quillInterop.lastProcessedTime = Date.now();
+                            window.quillInterop.lastProcessedSource = 'text-change';
+
                             handled = true;
                             break;
                         }
@@ -247,12 +265,14 @@ window.quillInterop = {
 
         editorDiv.addEventListener('keydown', (e) => {
             if (window.isKannadaMode) {
+                // Update time for ANY key activity to prevent aggressive buffer clearing
+                window.quillInterop.lastKeyHandledTime = Date.now();
+
                 console.log("Keydown intercepted (Kannada Mode):", e.key);
 
                 // Handle Backspace
                 if (e.key === 'Backspace') {
                     console.log("Processing Backspace");
-                    window.quillInterop.lastKeyHandledTime = Date.now(); // Mark as handled
                     // We notify C# to update buffer, but we let Quill perform the deletion normally.
                     dotNetReference.invokeMethodAsync('ProcessBackspace');
                     return;
@@ -263,8 +283,13 @@ window.quillInterop = {
                     console.log("Preventing default and processing key:", e.key);
                     e.preventDefault();
                     e.stopPropagation();
-                    window.quillInterop.lastKeyHandledTime = Date.now(); // Mark as handled
+
                     dotNetReference.invokeMethodAsync('ProcessKannadaKey', e.key);
+
+                    // Update state
+                    window.quillInterop.lastProcessedKey = e.key;
+                    window.quillInterop.lastProcessedTime = Date.now();
+                    window.quillInterop.lastProcessedSource = 'keydown';
                 }
             }
         }, true); // Capture phase
