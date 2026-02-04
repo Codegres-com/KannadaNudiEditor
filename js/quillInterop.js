@@ -328,6 +328,14 @@ window.quillInterop = {
 
                 // Handle Backspace (deleteContentBackward)
                 else if (e.inputType === 'deleteContentBackward') {
+                    // Check if we just handled it in keydown
+                    if (window.quillInterop.lastProcessedSource === 'keydown' &&
+                        Date.now() - window.quillInterop.lastProcessedTime < 200) {
+                        console.log("Ignoring beforeinput Backspace (handled by keydown)");
+                        e.preventDefault();
+                        return;
+                    }
+
                     console.log("beforeinput Backspace intercepted");
                     e.preventDefault();
 
@@ -344,14 +352,17 @@ window.quillInterop = {
             if (window.isKannadaMode) {
                 window.quillInterop.lastKeyHandledTime = Date.now();
 
-                // Handle Backspace via keydown if beforeinput didn't catch it recently
+                // Handle Backspace via keydown
                 if (e.key === 'Backspace') {
-                    if (Date.now() - window.quillInterop.lastProcessedTime < 50 && window.quillInterop.lastProcessedSource === 'beforeinput') {
-                         console.log("Ignored keydown Backspace (handled by beforeinput)");
-                         return;
-                    }
-                    console.log("Processing Backspace via keydown fallback");
+                    // Update state FIRST
+                    window.quillInterop.lastProcessedTime = Date.now();
+                    window.quillInterop.lastProcessedSource = 'keydown';
+
+                    console.log("Processing Backspace via keydown");
                     dotNetReference.invokeMethodAsync('ProcessBackspace');
+
+                    // Prevent default to try and stop beforeinput
+                    e.preventDefault();
                     return;
                 }
 
