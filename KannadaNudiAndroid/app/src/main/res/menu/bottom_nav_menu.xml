@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_keyboard"
+        android:icon="@drawable/ic_keyboard"
+        android:title="Keyboard" />
+    <item
+        android:id="@+id/navigation_editor"
+        android:icon="@drawable/ic_editor"
+        android:title="Editor" />
+</menu>

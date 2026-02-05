@@ -1,70 +1,62 @@
 package com.kannadanudi.keyboard
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
-import android.view.View
-import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var btnEnable: Button
-    private lateinit var tvInstructions: TextView
-    private lateinit var tvSteps: TextView
+    private lateinit var keyboardFragment: Fragment
+    private lateinit var editorFragment: Fragment
+    private lateinit var activeFragment: Fragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        btnEnable = findViewById(R.id.btnEnable)
-        tvInstructions = findViewById(R.id.tvInstructions)
-        tvSteps = findViewById(R.id.tvSteps)
-    }
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-    override fun onResume() {
-        super.onResume()
-        checkKeyboardStatus()
-    }
+        if (savedInstanceState == null) {
+            keyboardFragment = KeyboardFragment()
+            editorFragment = EditorFragment()
+            activeFragment = editorFragment
 
-    private fun checkKeyboardStatus() {
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        val list = imm.enabledInputMethodList
-
-        // Check if our keyboard package is in the enabled list
-        val isEnabled = list.any { it.packageName == packageName }
-
-        // Check if our keyboard is the currently selected default
-        val currentId = Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
-        val isSelected = currentId != null && currentId.contains(packageName)
-
-        if (!isEnabled) {
-            tvInstructions.text = "To use this keyboard, you must enable it in System Settings."
-            tvSteps.visibility = View.VISIBLE
-            tvSteps.text = "1. Click the button below.\n2. Toggle 'Kannada Nudi Keyboard' to ON.\n3. Return to this app."
-            btnEnable.text = "Enable Keyboard in Settings"
-            btnEnable.isEnabled = true
-            btnEnable.setOnClickListener {
-                startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+            supportFragmentManager.beginTransaction().apply {
+                add(R.id.fragment_container, keyboardFragment, "KEYBOARD").hide(keyboardFragment)
+                add(R.id.fragment_container, editorFragment, "EDITOR")
+                commit()
             }
-        } else if (!isSelected) {
-            tvInstructions.text = "Great! Now select Kannada Nudi as your active keyboard."
-            tvSteps.visibility = View.VISIBLE
-            tvSteps.text = "1. Click the button below.\n2. Select 'Kannada Nudi Keyboard' from the list."
-            btnEnable.text = "Switch Input Method"
-            btnEnable.isEnabled = true
-            btnEnable.setOnClickListener {
-                imm.showInputMethodPicker()
-            }
+            bottomNav.selectedItemId = R.id.navigation_editor
         } else {
-            tvInstructions.text = "You are all set! The keyboard is ready to use."
-            tvSteps.visibility = View.GONE
-            btnEnable.text = "Keyboard is Ready"
-            btnEnable.isEnabled = false
-            btnEnable.setOnClickListener(null)
+            keyboardFragment = supportFragmentManager.findFragmentByTag("KEYBOARD")!!
+            editorFragment = supportFragmentManager.findFragmentByTag("EDITOR")!!
+            activeFragment = if (editorFragment.isHidden) keyboardFragment else editorFragment
         }
+
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_keyboard -> {
+                    showFragment(keyboardFragment)
+                    true
+                }
+                R.id.navigation_editor -> {
+                    showFragment(editorFragment)
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun showFragment(fragment: Fragment) {
+        if (fragment == activeFragment) return
+
+        supportFragmentManager.beginTransaction().apply {
+            hide(activeFragment)
+            show(fragment)
+            commit()
+        }
+        activeFragment = fragment
     }
 }
