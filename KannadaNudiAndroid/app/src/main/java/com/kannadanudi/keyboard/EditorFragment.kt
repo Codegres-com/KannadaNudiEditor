@@ -29,6 +29,15 @@ class EditorFragment : Fragment() {
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
 
+        // Enable Zoom
+        webSettings.setSupportZoom(true)
+        webSettings.builtInZoomControls = true
+        webSettings.displayZoomControls = true
+
+        // Enable Scrollbars (enabled by default, but ensuring settings)
+        webView.isVerticalScrollBarEnabled = true
+        webView.isHorizontalScrollBarEnabled = true
+
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url.toString()

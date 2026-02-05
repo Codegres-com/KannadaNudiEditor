@@ -7,9 +7,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
-    private val keyboardFragment = KeyboardFragment()
-    private val editorFragment = EditorFragment()
-    private var activeFragment: Fragment = keyboardFragment
+    private lateinit var keyboardFragment: Fragment
+    private lateinit var editorFragment: Fragment
+    private lateinit var activeFragment: Fragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,11 +17,21 @@ class MainActivity : AppCompatActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-        // Initial setup
-        supportFragmentManager.beginTransaction().apply {
-            add(R.id.fragment_container, editorFragment, "EDITOR").hide(editorFragment)
-            add(R.id.fragment_container, keyboardFragment, "KEYBOARD")
-            commit()
+        if (savedInstanceState == null) {
+            keyboardFragment = KeyboardFragment()
+            editorFragment = EditorFragment()
+            activeFragment = editorFragment
+
+            supportFragmentManager.beginTransaction().apply {
+                add(R.id.fragment_container, keyboardFragment, "KEYBOARD").hide(keyboardFragment)
+                add(R.id.fragment_container, editorFragment, "EDITOR")
+                commit()
+            }
+            bottomNav.selectedItemId = R.id.navigation_editor
+        } else {
+            keyboardFragment = supportFragmentManager.findFragmentByTag("KEYBOARD")!!
+            editorFragment = supportFragmentManager.findFragmentByTag("EDITOR")!!
+            activeFragment = if (editorFragment.isHidden) keyboardFragment else editorFragment
         }
 
         bottomNav.setOnItemSelectedListener { item ->
