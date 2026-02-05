@@ -29,10 +29,14 @@ class EditorFragment : Fragment() {
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
 
-        // Enable Zoom
+        // Enable Zoom (Touch Controls)
         webSettings.setSupportZoom(true)
         webSettings.builtInZoomControls = true
-        webSettings.displayZoomControls = true
+        webSettings.displayZoomControls = false // Hide the old zoom buttons
+
+        // Improve Layout for Mobile
+        webSettings.useWideViewPort = true
+        webSettings.loadWithOverviewMode = true
 
         // Enable Scrollbars (enabled by default, but ensuring settings)
         webView.isVerticalScrollBarEnabled = true
