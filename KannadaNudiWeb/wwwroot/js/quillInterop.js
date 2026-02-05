@@ -78,6 +78,17 @@ window.quillInterop = {
             modules: modulesConfig
         });
 
+        // Mobile: Hide toolbar on focus (Keyboard Active)
+        const toolbar = document.getElementById('main-toolbar');
+        if (toolbar && this.quill.root) {
+             this.quill.root.addEventListener('focus', () => {
+                 toolbar.classList.add('hide-on-mobile');
+             });
+             this.quill.root.addEventListener('blur', () => {
+                 toolbar.classList.remove('hide-on-mobile');
+             });
+        }
+
         // Disable predictive text features to prevent mobile keyboard interference
         if (this.quill.root) {
             this.quill.root.setAttribute('autocomplete', 'off');

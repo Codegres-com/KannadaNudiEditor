@@ -9,7 +9,7 @@
 
 <PageTitle>Kannada Nudi Editor</PageTitle>
 
-<div class="toolbar-container">
+<div id="main-toolbar" class="toolbar-container">
     <div class="toolbar-group">
         <label class="toolbar-label">Input Mode:</label>
         <div class="form-check form-switch">
@@ -158,6 +158,10 @@
         .toolbar-container {
             gap: 10px;
             justify-content: center; /* Center items when wrapped */
+        }
+
+        .toolbar-container.hide-on-mobile {
+            display: none !important;
         }
 
         .toolbar-group {
