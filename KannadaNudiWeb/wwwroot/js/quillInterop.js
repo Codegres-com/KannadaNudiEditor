@@ -127,6 +127,11 @@ window.quillInterop = {
                         // Handle single character insertions (excluding newlines)
                         if (op.insert.length === 1 && op.insert !== '\n') {
 
+                            // Revert the user's insertion immediately by deleting it
+                            // We do this BEFORE deduplication check because if beforeinput failed to preventDefault,
+                            // the text IS in the editor and needs to be removed.
+                            this.quill.deleteText(index, op.insert.length, 'silent');
+
                             // Deduplication Check: If handled by beforeinput or keydown recently, skip
                             if ((window.quillInterop.lastProcessedSource === 'beforeinput' || window.quillInterop.lastProcessedSource === 'keydown') &&
                                 Date.now() - window.quillInterop.lastProcessedTime < 200 &&
@@ -138,9 +143,6 @@ window.quillInterop = {
 
                             // Update timestamp to prevent selection-change from clearing buffer
                             this.lastKeyHandledTime = Date.now();
-
-                            // Revert the user's insertion immediately by deleting it
-                            this.quill.deleteText(index, op.insert.length, 'silent');
 
                             // Send the character to C# for transliteration
                             this.dotNetRef.invokeMethodAsync('ProcessKannadaKey', op.insert);
