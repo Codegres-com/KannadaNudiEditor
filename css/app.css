@@ -114,7 +114,12 @@ a, .btn-link {
     .ql-editor, .ql-editor * {
         /* Force System Font on iOS to fix ligature rendering, overriding inline Quill styles */
         font-family: 'Kannada Sangam MN', 'Nudi Parijatha', sans-serif !important;
-        font-feature-settings: "kern" 1, "liga" 1;
+        /*
+           Use 'normal' to enable all OpenType features (including 'blwf', 'cjct' for conjuncts).
+           Explicitly setting "liga" 1 disables other features, breaking complex script rendering.
+        */
+        font-feature-settings: normal !important;
+        -webkit-font-feature-settings: normal !important;
         text-rendering: optimizeLegibility;
     }
 }
