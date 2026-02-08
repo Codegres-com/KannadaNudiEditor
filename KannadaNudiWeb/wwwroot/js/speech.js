@@ -7,6 +7,16 @@ window.speechInterop = {
     },
 
     isSupported: function() {
+        // Disable on Apple devices due to poor support/bugs
+        var isApple = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ||
+                      /Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ||
+                      (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 0);
+
+        if (isApple) {
+            console.warn("Speech recognition disabled on Apple devices.");
+            return false;
+        }
+
         return !!(window.SpeechRecognition ||
                   window.webkitSpeechRecognition ||
                   window.mozSpeechRecognition ||
@@ -14,6 +24,11 @@ window.speechInterop = {
     },
 
     start: function (lang) {
+        if (!this.isSupported()) {
+            console.warn("Speech recognition is disabled or not supported.");
+            return false;
+        }
+
         const SpeechRecognition = window.SpeechRecognition ||
                                   window.webkitSpeechRecognition ||
                                   window.mozSpeechRecognition ||
