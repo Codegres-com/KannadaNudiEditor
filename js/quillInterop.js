@@ -95,6 +95,10 @@ window.quillInterop = {
             this.quill.root.setAttribute('autocorrect', 'off');
             this.quill.root.setAttribute('autocapitalize', 'off');
             this.quill.root.setAttribute('spellcheck', 'false');
+            this.quill.root.setAttribute('data-gramm', 'false');
+            this.quill.root.setAttribute('data-gramm_editor', 'false');
+            this.quill.root.setAttribute('data-enable-grammarly', 'false');
+            this.quill.root.setAttribute('aria-autocomplete', 'none');
         }
 
         this.quill.on('selection-change', function(range, oldRange, source) {
