@@ -513,5 +513,11 @@ window.quillInterop = {
             console.error("Error converting DocX:", error);
             throw error;
         }
+    },
+
+    isAppleDevice: function() {
+        return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ||
+               /Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ||
+               (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 0);
     }
 };
