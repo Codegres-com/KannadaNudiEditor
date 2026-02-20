@@ -8,6 +8,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class MainActivity : AppCompatActivity() {
 
     private lateinit var keyboardFragment: Fragment
+    private lateinit var speechFragment: Fragment
     private lateinit var editorFragment: Fragment
     private lateinit var activeFragment: Fragment
 
@@ -19,25 +20,38 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             keyboardFragment = KeyboardFragment()
+            speechFragment = SpeechFragment()
             editorFragment = EditorFragment()
-            activeFragment = editorFragment
+
+            // Set SpeechFragment as default
+            activeFragment = speechFragment
 
             supportFragmentManager.beginTransaction().apply {
                 add(R.id.fragment_container, keyboardFragment, "KEYBOARD").hide(keyboardFragment)
-                add(R.id.fragment_container, editorFragment, "EDITOR")
+                add(R.id.fragment_container, editorFragment, "EDITOR").hide(editorFragment)
+                add(R.id.fragment_container, speechFragment, "SPEECH")
                 commit()
             }
-            bottomNav.selectedItemId = R.id.navigation_editor
+            bottomNav.selectedItemId = R.id.navigation_speech
         } else {
             keyboardFragment = supportFragmentManager.findFragmentByTag("KEYBOARD")!!
+            speechFragment = supportFragmentManager.findFragmentByTag("SPEECH")!!
             editorFragment = supportFragmentManager.findFragmentByTag("EDITOR")!!
-            activeFragment = if (editorFragment.isHidden) keyboardFragment else editorFragment
+
+            // Determine active fragment
+            activeFragment = if (!keyboardFragment.isHidden) keyboardFragment
+                             else if (!speechFragment.isHidden) speechFragment
+                             else editorFragment
         }
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_keyboard -> {
                     showFragment(keyboardFragment)
+                    true
+                }
+                R.id.navigation_speech -> {
+                    showFragment(speechFragment)
                     true
                 }
                 R.id.navigation_editor -> {

@@ -5,6 +5,10 @@
         android:icon="@drawable/ic_keyboard"
         android:title="Keyboard" />
     <item
+        android:id="@+id/navigation_speech"
+        android:icon="@drawable/ic_mic"
+        android:title="Speech" />
+    <item
         android:id="@+id/navigation_editor"
         android:icon="@drawable/ic_editor"
         android:title="Editor" />
