@@ -11,8 +11,17 @@ android {
         applicationId "com.kannadanudi.keyboard"
         minSdk 24
         targetSdk 36
-        versionCode 3
+        versionCode 4
         versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('key.jks')
+            storePassword 'Nudi@123'
+            keyPassword 'Nudi@123'
+            keyAlias 'key0'
+        }
     }
 
     buildTypes {

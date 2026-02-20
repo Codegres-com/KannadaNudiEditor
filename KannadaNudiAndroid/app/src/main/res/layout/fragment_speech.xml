@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="#FAFAFA">
+
+    <TextView
+        android:id="@+id/tvSpeechTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kannada Speech to Text"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#212121"
+        android:layout_marginBottom="32dp"
+        android:layout_marginTop="16dp"/>
+
+    <!-- Prominent Mic Button -->
+    <ImageButton
+        android:id="@+id/btnMic"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/ic_mic"
+        android:background="@drawable/mic_background_circle"
+        android:scaleType="centerInside"
+        android:padding="24dp"
+        android:contentDescription="Start Listening"
+        android:elevation="6dp"
+        android:layout_marginBottom="24dp"/>
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap microphone to speak"
+        android:textSize="18sp"
+        android:textColor="#757575"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- Text Output Area with CardView look -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/edit_text_background"
+        android:orientation="vertical"
+        android:elevation="2dp"
+        android:layout_marginBottom="24dp">
+
+        <EditText
+            android:id="@+id/etSpeechResult"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:hint="Your speech will appear here..."
+            android:gravity="top|start"
+            android:padding="16dp"
+            android:scrollbars="vertical"
+            android:textSize="20sp"
+            android:textColor="#212121"
+            android:inputType="textMultiLine|textNoSuggestions"/>
+    </LinearLayout>
+
+    <!-- Copy Button -->
+    <Button
+        android:id="@+id/btnCopy"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Copy Text"
+        android:textSize="18sp"
+        android:backgroundTint="#2196F3"
+        android:textColor="#FFFFFF"
+        android:stateListAnimator="@null"
+        android:elevation="4dp"/>
+
+</LinearLayout>
