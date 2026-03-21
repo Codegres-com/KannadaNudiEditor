@@ -1,41 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Welcome to Kannada Nudi Keyboard"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="32dp"/>
-
-    <TextView
-        android:id="@+id/tvInstructions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="To use this keyboard, you must enable it in System Settings."
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginBottom="24dp"/>
-
-    <TextView
-        android:id="@+id/tvSteps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="1. Click the button below.\n2. Toggle 'Kannada Nudi Keyboard' to ON.\n3. Open any app and switch keyboard."
-        android:textSize="14sp"
-        android:layout_marginBottom="32dp"/>
-
-    <Button
-        android:id="@+id/btnEnable"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enable Keyboard in Settings" />
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
 
-</LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to Kannada Nudi Keyboard"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="32dp"/>
+
+        <TextView
+            android:id="@+id/tvInstructions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="To use this keyboard, you must enable it in System Settings."
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"/>
+
+        <TextView
+            android:id="@+id/tvSteps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. Click the button below.\n2. Toggle 'Kannada Nudi Keyboard' to ON.\n3. Open any app and switch keyboard."
+            android:textSize="14sp"
+            android:layout_marginBottom="32dp"/>
+
+        <Button
+            android:id="@+id/btnEnable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable Keyboard in Settings" />
+
+        <!-- Microphone Permission Section -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Microphone Permission"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#212121"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:id="@+id/tvMicStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Checking microphone permission..."
+            android:textSize="14sp"
+            android:textColor="#616161"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/btnGrantMic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Grant Microphone Permission"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+</ScrollView>

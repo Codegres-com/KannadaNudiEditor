@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Splash screen theme -->
+    <style name="Theme.KannadaNudiKeyboard.SplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/kannada_nudi_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.KannadaNudiKeyboard</item>
+    </style>
+
     <!-- Base application theme. -->
     <style name="Theme.KannadaNudiKeyboard" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->

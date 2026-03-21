@@ -1,7 +1,9 @@
 package com.kannadanudi.keyboard
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -10,6 +12,8 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 
 class KeyboardFragment : Fragment() {
@@ -17,6 +21,14 @@ class KeyboardFragment : Fragment() {
     private lateinit var btnEnable: Button
     private lateinit var tvInstructions: TextView
     private lateinit var tvSteps: TextView
+    private lateinit var tvMicStatus: TextView
+    private lateinit var btnGrantMic: Button
+
+    private val requestMicPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        updateMicPermissionUI(isGranted)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,11 +42,34 @@ class KeyboardFragment : Fragment() {
         btnEnable = view.findViewById(R.id.btnEnable)
         tvInstructions = view.findViewById(R.id.tvInstructions)
         tvSteps = view.findViewById(R.id.tvSteps)
+        tvMicStatus = view.findViewById(R.id.tvMicStatus)
+        btnGrantMic = view.findViewById(R.id.btnGrantMic)
+
+        btnGrantMic.setOnClickListener {
+            requestMicPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         checkKeyboardStatus()
+        updateMicPermissionUI(isMicPermissionGranted())
+    }
+
+    private fun isMicPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun updateMicPermissionUI(granted: Boolean) {
+        if (granted) {
+            tvMicStatus.text = "Microphone permission granted — voice input is enabled."
+            btnGrantMic.visibility = View.GONE
+        } else {
+            tvMicStatus.text = "Microphone permission is needed for voice input on the keyboard."
+            btnGrantMic.visibility = View.VISIBLE
+        }
     }
 
     private fun checkKeyboardStatus() {
@@ -42,10 +77,8 @@ class KeyboardFragment : Fragment() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         val list = imm.enabledInputMethodList
 
-        // Check if our keyboard package is in the enabled list
         val isEnabled = list.any { it.packageName == context.packageName }
 
-        // Check if our keyboard is the currently selected default
         val currentId = Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
         val isSelected = currentId != null && currentId.contains(context.packageName)
 
