@@ -10,6 +10,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var keyboardFragment: Fragment
     private lateinit var speechFragment: Fragment
     private lateinit var editorFragment: Fragment
+    private lateinit var translateFragment: Fragment
     private lateinit var activeFragment: Fragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,6 +23,7 @@ class MainActivity : AppCompatActivity() {
             keyboardFragment = KeyboardFragment()
             speechFragment = SpeechFragment()
             editorFragment = EditorFragment()
+            translateFragment = TranslateFragment()
 
             // Set SpeechFragment as default
             activeFragment = speechFragment
@@ -29,6 +31,7 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().apply {
                 add(R.id.fragment_container, keyboardFragment, "KEYBOARD").hide(keyboardFragment)
                 add(R.id.fragment_container, editorFragment, "EDITOR").hide(editorFragment)
+                add(R.id.fragment_container, translateFragment, "TRANSLATE").hide(translateFragment)
                 add(R.id.fragment_container, speechFragment, "SPEECH")
                 commit()
             }
@@ -37,10 +40,12 @@ class MainActivity : AppCompatActivity() {
             keyboardFragment = supportFragmentManager.findFragmentByTag("KEYBOARD")!!
             speechFragment = supportFragmentManager.findFragmentByTag("SPEECH")!!
             editorFragment = supportFragmentManager.findFragmentByTag("EDITOR")!!
+            translateFragment = supportFragmentManager.findFragmentByTag("TRANSLATE")!!
 
             // Determine active fragment
             activeFragment = if (!keyboardFragment.isHidden) keyboardFragment
                              else if (!speechFragment.isHidden) speechFragment
+                             else if (!translateFragment.isHidden) translateFragment
                              else editorFragment
         }
 
@@ -56,6 +61,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.navigation_editor -> {
                     showFragment(editorFragment)
+                    true
+                }
+                R.id.navigation_translate -> {
+                    showFragment(translateFragment)
                     true
                 }
                 else -> false

@@ -12,4 +12,8 @@
         android:id="@+id/navigation_editor"
         android:icon="@drawable/ic_editor"
         android:title="Editor" />
+    <item
+        android:id="@+id/navigation_translate"
+        android:icon="@drawable/ic_translate"
+        android:title="Translate" />
 </menu>
