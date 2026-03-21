@@ -49,7 +49,7 @@ class TransliterationEngine {
         "v" to "ವ", "V" to "ವ",
         "b" to "ಬ", "B" to "ಬ",
         "n" to "ನ", "N" to "ಣ",
-        "m" to "ಮ", "M" to "ಮ"
+        "m" to "ಮ", "M" to "ಂ"
     )
 
     // Matra Map (Vowel Signs)

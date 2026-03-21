@@ -41,7 +41,7 @@
         <Key android:codes="86" android:keyLabel="ವ"/>
         <Key android:codes="66" android:keyLabel="ಬ"/>
         <Key android:codes="78" android:keyLabel="ಣ"/>
-        <Key android:codes="77" android:keyLabel="ಮ"/>
+        <Key android:codes="77" android:keyLabel="ಂ"/>
         <Key android:codes="-5" android:keyLabel="DEL" android:keyWidth="15%p" android:isRepeatable="true" android:keyEdgeFlags="right"/>
     </Row>
 
