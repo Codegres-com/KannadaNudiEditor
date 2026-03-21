@@ -5,6 +5,19 @@ window.quillInterop = {
     lastProcessedKey: null,
     lastProcessedTime: 0,
     lastProcessedSource: null,
+    _processingBackspace: false,
+
+    // Returns true if the string contains any Kannada Unicode character (U+0C80–U+0CFF).
+    // Used to detect OS-level Kannada keyboard input so we can bypass transliteration.
+    _isKannadaText: function(text) {
+        if (!text) return false;
+        for (let i = 0; i < text.length; i++) {
+            const cp = text.codePointAt(i);
+            if (cp >= 0x0C80 && cp <= 0x0CFF) return true;
+            if (cp > 0xFFFF) i++; // skip surrogate pair second unit
+        }
+        return false;
+    },
 
     init: function (elementId, dotNetReference) {
         if (!window.Quill) {
@@ -134,6 +147,12 @@ window.quillInterop = {
                         // Handle single character insertions (excluding newlines)
                         if (op.insert.length === 1 && op.insert !== '\n') {
 
+                            // If already a Kannada Unicode char (OS Kannada keyboard), leave it as-is
+                            if (window.quillInterop._isKannadaText(op.insert)) {
+                                index += op.insert.length;
+                                continue;
+                            }
+
                             // Revert the user's insertion immediately by deleting it
                             // We do this BEFORE deduplication check because if beforeinput failed to preventDefault,
                             // the text IS in the editor and needs to be removed.
@@ -164,9 +183,9 @@ window.quillInterop = {
                         }
                         index += op.insert.length;
                     } else if (op.delete) {
-                         // Check if this deletion was already handled
+                         // Check if this deletion was already handled by keydown/beforeinput
                          const now = Date.now();
-                         if (now - this.lastKeyHandledTime > 200) {
+                         if (now - this.lastKeyHandledTime > 200 && !window.quillInterop._processingBackspace) {
                              // Update timestamp
                              this.lastKeyHandledTime = Date.now();
 
@@ -175,7 +194,12 @@ window.quillInterop = {
                                  this.dotNetRef.invokeMethodAsync('OnSelectionChanged');
                              } else {
                                  // Single char deletion: Try to process backspace logic
-                                 this.dotNetRef.invokeMethodAsync('ProcessBackspace');
+                                 window.quillInterop._processingBackspace = true;
+                                 this.dotNetRef.invokeMethodAsync('ProcessBackspace').then(() => {
+                                     window.quillInterop._processingBackspace = false;
+                                 }).catch(() => {
+                                     window.quillInterop._processingBackspace = false;
+                                 });
                              }
                              handled = true;
                          }
@@ -330,6 +354,14 @@ window.quillInterop = {
                     e.inputType === 'insertCompositionText' ||
                     e.inputType === 'insertReplacementText') {
 
+                    // If the input is already Kannada Unicode (OS-level Kannada keyboard),
+                    // let the browser insert it natively and skip transliteration entirely.
+                    if (e.data && window.quillInterop._isKannadaText(e.data)) {
+                        window.quillInterop.lastKeyHandledTime = Date.now();
+                        dotNetReference.invokeMethodAsync('OnSelectionChanged'); // clear transliteration buffer
+                        return; // do NOT preventDefault — native insertion handles it
+                    }
+
                     // Prevent the browser from inserting the text (English/Predictive)
                     e.preventDefault();
 
@@ -348,24 +380,25 @@ window.quillInterop = {
 
                 // Handle Backspace (deleteContentBackward)
                 else if (e.inputType === 'deleteContentBackward') {
-                    // Check if we just handled it in keydown
-                    // Use a slightly larger window (300ms) to be safe across slower devices
-                    if (window.quillInterop.lastProcessedSource === 'keydown' &&
-                        Date.now() - window.quillInterop.lastProcessedTime < 300) {
-                        console.log("Ignoring beforeinput Backspace (handled by keydown)");
-                        e.preventDefault();
+                    e.preventDefault();
+
+                    // Flag-based dedup: if keydown already fired ProcessBackspace, skip
+                    if (window.quillInterop._processingBackspace) {
+                        console.log("Ignoring beforeinput Backspace (already processing)");
                         return;
                     }
 
                     console.log("beforeinput Backspace intercepted");
-                    e.preventDefault();
-
-                    // Sync BOTH timestamps
+                    window.quillInterop._processingBackspace = true;
                     window.quillInterop.lastKeyHandledTime = Date.now();
                     window.quillInterop.lastProcessedTime = Date.now();
                     window.quillInterop.lastProcessedSource = 'beforeinput';
 
-                    dotNetReference.invokeMethodAsync('ProcessBackspace');
+                    dotNetReference.invokeMethodAsync('ProcessBackspace').then(() => {
+                        window.quillInterop._processingBackspace = false;
+                    }).catch(() => {
+                        window.quillInterop._processingBackspace = false;
+                    });
                 }
              }
         }, true); // Capture phase
@@ -377,16 +410,26 @@ window.quillInterop = {
 
                 // Handle Backspace via keydown
                 if (e.key === 'Backspace') {
-                    // Update state FIRST
-                    window.quillInterop.lastKeyHandledTime = Date.now(); // Update this to block text-change
-                    window.quillInterop.lastProcessedTime = Date.now();  // Update this to block beforeinput
+                    e.preventDefault();
+
+                    // Flag-based dedup: only one handler fires ProcessBackspace per keypress
+                    if (window.quillInterop._processingBackspace) {
+                        console.log("Ignoring duplicate Backspace (keydown)");
+                        return;
+                    }
+
+                    window.quillInterop._processingBackspace = true;
+                    window.quillInterop.lastKeyHandledTime = Date.now();
+                    window.quillInterop.lastProcessedTime = Date.now();
                     window.quillInterop.lastProcessedSource = 'keydown';
 
                     console.log("Processing Backspace via keydown");
-                    dotNetReference.invokeMethodAsync('ProcessBackspace');
+                    dotNetReference.invokeMethodAsync('ProcessBackspace').then(() => {
+                        window.quillInterop._processingBackspace = false;
+                    }).catch(() => {
+                        window.quillInterop._processingBackspace = false;
+                    });
 
-                    // Prevent default to try and stop beforeinput/native delete
-                    e.preventDefault();
                     return;
                 }
 
