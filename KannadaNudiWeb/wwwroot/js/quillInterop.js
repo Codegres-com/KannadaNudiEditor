@@ -17,7 +17,7 @@ window.quillInterop = {
 
         // Register custom fonts
         var Font = Quill.import('formats/font');
-        Font.whitelist = ['nudiparijatha', 'nudi-01-e', 'nudi-01-k', 'nudi-02-e', 'nudi-05-e', 'nudi-10-e'];
+        Font.whitelist = ['smartnudi1', 'nudiparijatha', 'nudi-01-e', 'nudi-01-k', 'nudi-02-e', 'nudi-05-e', 'nudi-10-e'];
         Quill.register(Font, true);
 
         // Register Quill Better Table
@@ -77,6 +77,9 @@ window.quillInterop = {
             theme: 'snow',
             modules: modulesConfig
         });
+
+        // Set SmartNudi1 as the default font for new content
+        this.quill.format('font', 'smartnudi1');
 
         // Mobile: Hide toolbar on focus (Keyboard Active)
         const toolbar = document.getElementById('main-toolbar');
