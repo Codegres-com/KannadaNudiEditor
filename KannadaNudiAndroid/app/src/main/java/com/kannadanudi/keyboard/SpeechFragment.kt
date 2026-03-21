@@ -32,15 +32,12 @@ class SpeechFragment : Fragment() {
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
 
-    // Request permission using ActivityResultContracts
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permission granted, start listening
             startListening()
         } else {
-            // Permission denied, show a message
             Toast.makeText(context, "Microphone permission is required for speech recognition", Toast.LENGTH_SHORT).show()
         }
     }
@@ -56,7 +53,6 @@ class SpeechFragment : Fragment() {
         etSpeechResult = view.findViewById(R.id.etSpeechResult)
         btnCopy = view.findViewById(R.id.btnCopy)
 
-        // Setup Speech Recognizer
         setupSpeechRecognizer()
 
         btnMic.setOnClickListener {
@@ -83,75 +79,75 @@ class SpeechFragment : Fragment() {
     }
 
     private fun setupSpeechRecognizer() {
-        if (SpeechRecognizer.isRecognitionAvailable(requireContext())) {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
-            speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {
-                    tvStatus.text = "Listening..."
-                    btnMic.setBackgroundResource(R.drawable.mic_background_circle_active)
-                }
+        speechRecognizer?.destroy()
+        speechRecognizer = null
 
-                override fun onBeginningOfSpeech() {
-                    tvStatus.text = "Listening..."
-                }
-
-                override fun onRmsChanged(rmsdB: Float) {
-                    // Visual feedback for volume could go here
-                }
-
-                override fun onBufferReceived(buffer: ByteArray?) {}
-
-                override fun onEndOfSpeech() {
-                    tvStatus.text = "Processing..."
-                    isListening = false
-                    btnMic.setBackgroundResource(R.drawable.mic_background_circle)
-                }
-
-                override fun onError(error: Int) {
-                    isListening = false
-                    val message = when (error) {
-                        SpeechRecognizer.ERROR_NO_MATCH -> "No speech detected"
-                        SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permission denied"
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Service busy"
-                        SpeechRecognizer.ERROR_SERVER -> "Server error"
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Speech timeout"
-                        else -> "Error occurred: $error"
-                    }
-                    tvStatus.text = message
-                    btnMic.setBackgroundResource(R.drawable.mic_background_circle)
-                }
-
-                override fun onResults(results: Bundle?) {
-                    isListening = false
-                    btnMic.setBackgroundResource(R.drawable.mic_background_circle)
-
-                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    if (!matches.isNullOrEmpty()) {
-                        val text = matches[0]
-                        // Append to existing text with a space
-                        val currentText = etSpeechResult.text.toString()
-                        val newText = if (currentText.isEmpty()) text else "$currentText $text"
-
-                        etSpeechResult.setText(newText)
-                        etSpeechResult.setSelection(newText.length) // Move cursor to end
-                        tvStatus.text = "Tap microphone to speak"
-                    } else {
-                        tvStatus.text = "No text recognized"
-                    }
-                }
-
-                override fun onPartialResults(partialResults: Bundle?) {
-                    // Handle partial results if needed
-                }
-
-                override fun onEvent(eventType: Int, params: Bundle?) {}
-            })
-        } else {
+        if (!SpeechRecognizer.isRecognitionAvailable(requireContext())) {
             tvStatus.text = "Speech Recognition not available on this device"
             btnMic.isEnabled = false
             btnMic.alpha = 0.5f
+            return
         }
+
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
+        speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {
+                tvStatus.text = "Listening..."
+                btnMic.setBackgroundResource(R.drawable.mic_background_circle_active)
+            }
+
+            override fun onBeginningOfSpeech() {
+                tvStatus.text = "Listening..."
+            }
+
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+
+            override fun onEndOfSpeech() {
+                tvStatus.text = "Processing..."
+                isListening = false
+                btnMic.setBackgroundResource(R.drawable.mic_background_circle)
+            }
+
+            override fun onError(error: Int) {
+                isListening = false
+                btnMic.setBackgroundResource(R.drawable.mic_background_circle)
+
+                val message = when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH -> "No speech detected"
+                    SpeechRecognizer.ERROR_NETWORK -> "Network error. Check your connection and try again."
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permission denied"
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognizer busy, please try again"
+                    SpeechRecognizer.ERROR_SERVER -> "Server error"
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech detected"
+                    else -> "Error occurred ($error)"
+                }
+                tvStatus.text = message
+
+                // Recreate recognizer — it gets stuck after errors on many devices
+                setupSpeechRecognizer()
+            }
+
+            override fun onResults(results: Bundle?) {
+                isListening = false
+                btnMic.setBackgroundResource(R.drawable.mic_background_circle)
+
+                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                if (!matches.isNullOrEmpty()) {
+                    val text = matches[0]
+                    val currentText = etSpeechResult.text.toString()
+                    val newText = if (currentText.isEmpty()) text else "$currentText $text"
+                    etSpeechResult.setText(newText)
+                    etSpeechResult.setSelection(newText.length)
+                    tvStatus.text = "Tap microphone to speak"
+                } else {
+                    tvStatus.text = "No text recognized"
+                }
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
     }
 
     private fun checkPermissionAndStart() {
@@ -162,20 +158,18 @@ class SpeechFragment : Fragment() {
         ) {
             startListening()
         } else {
-            // Request permission
             requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
 
     private fun startListening() {
         if (speechRecognizer == null) {
-            Toast.makeText(context, "Speech recognizer not initialized", Toast.LENGTH_SHORT).show()
-            return
+            setupSpeechRecognizer()
         }
 
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "kn-IN") // Kannada India
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "kn-IN")
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         }

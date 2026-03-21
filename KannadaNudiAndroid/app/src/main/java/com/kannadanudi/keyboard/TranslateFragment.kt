@@ -13,14 +13,12 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLEncoder
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.common.model.RemoteModelManager
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.TranslateRemoteModel
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
 
 class TranslateFragment : Fragment() {
 
@@ -30,18 +28,16 @@ class TranslateFragment : Fragment() {
     private lateinit var btnTranslate: Button
     private lateinit var btnCopyTranslation: Button
 
-    // Language display names paired with their MyMemory language codes
+    // Language display names paired with their BCP-47 language codes (ML Kit compatible)
+    // Note: Malayalam (ml) and Punjabi (pa) are not supported by ML Kit Translate offline
     private val languages = listOf(
-        "Auto Detect"   to "autodetect",
         "English"       to "en",
         "Hindi"         to "hi",
         "Tamil"         to "ta",
         "Telugu"        to "te",
-        "Malayalam"     to "ml",
         "Marathi"       to "mr",
         "Gujarati"      to "gu",
         "Bengali"       to "bn",
-        "Punjabi"       to "pa",
         "Urdu"          to "ur",
         "French"        to "fr",
         "German"        to "de",
@@ -66,8 +62,7 @@ class TranslateFragment : Fragment() {
         btnTranslate = view.findViewById(R.id.btnTranslate)
         btnCopyTranslation = view.findViewById(R.id.btnCopyTranslation)
 
-        val languageNames = languages.map { it.first }
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, languageNames)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, languages.map { it.first })
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerSourceLang.adapter = adapter
 
@@ -80,6 +75,8 @@ class TranslateFragment : Fragment() {
             val sourceLangCode = languages[spinnerSourceLang.selectedItemPosition].second
             performTranslation(inputText, sourceLangCode)
         }
+
+        preDownloadModels()
 
         btnCopyTranslation.setOnClickListener {
             val text = etOutputText.text.toString()
@@ -96,56 +93,69 @@ class TranslateFragment : Fragment() {
         return view
     }
 
-    private fun performTranslation(text: String, sourceLangCode: String) {
-        btnTranslate.isEnabled = false
-        btnTranslate.text = "Translating..."
-        etOutputText.setText("")
+    // Silently pre-download the Kannada model (target) and the default source language
+    // so translation is ready immediately when the user needs it.
+    private fun preDownloadModels() {
+        val conditions = DownloadConditions.Builder().build()
+        val modelManager = RemoteModelManager.getInstance()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            val result = translateText(text, sourceLangCode)
-            btnTranslate.isEnabled = true
-            btnTranslate.text = "Translate"
-            if (result != null) {
-                etOutputText.setText(result)
-            } else {
-                Toast.makeText(context, "Translation failed. Please check your internet connection.", Toast.LENGTH_LONG).show()
-            }
+        listOf(TranslateLanguage.KANNADA, languages[0].second).forEach { langCode ->
+            val model = TranslateRemoteModel.Builder(langCode).build()
+            modelManager.isModelDownloaded(model)
+                .addOnSuccessListener { downloaded ->
+                    if (!downloaded) {
+                        modelManager.download(model, conditions)
+                    }
+                }
         }
     }
 
-    private suspend fun translateText(text: String, sourceLangCode: String): String? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val encoded = URLEncoder.encode(text, "UTF-8")
-                val langPair = "$sourceLangCode|kn"
-                val urlString = "https://api.mymemory.translated.net/get?q=$encoded&langpair=$langPair"
-                val url = URL(urlString)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.connectTimeout = 15000
-                connection.readTimeout = 15000
-                connection.setRequestProperty("User-Agent", "KannadaNudiApp/1.0")
+    private fun performTranslation(text: String, sourceLangCode: String) {
+        btnTranslate.isEnabled = false
+        btnTranslate.text = "Downloading model..."
+        etOutputText.setText("")
 
-                try {
-                    val responseCode = connection.responseCode
-                    if (responseCode == HttpURLConnection.HTTP_OK) {
-                        val response = connection.inputStream.bufferedReader(Charsets.UTF_8).readText()
-                        val json = JSONObject(response)
-                        val status = json.getInt("responseStatus")
-                        if (status == 200) {
-                            json.getJSONObject("responseData").getString("translatedText")
-                        } else {
-                            null
+        val options = TranslatorOptions.Builder()
+            .setSourceLanguage(sourceLangCode)
+            .setTargetLanguage(TranslateLanguage.KANNADA)
+            .build()
+        val translator = Translation.getClient(options)
+
+        // Download language models if not already on device (requires internet first time only)
+        val conditions = DownloadConditions.Builder().build()
+        translator.downloadModelIfNeeded(conditions)
+            .addOnSuccessListener {
+                if (!isAdded) { translator.close(); return@addOnSuccessListener }
+                btnTranslate.text = "Translating..."
+                translator.translate(text)
+                    .addOnSuccessListener { translatedText ->
+                        if (isAdded) {
+                            etOutputText.setText(translatedText)
+                            btnTranslate.isEnabled = true
+                            btnTranslate.text = "Translate"
                         }
-                    } else {
-                        null
+                        translator.close()
                     }
-                } finally {
-                    connection.disconnect()
-                }
-            } catch (e: Exception) {
-                null
+                    .addOnFailureListener {
+                        if (isAdded) {
+                            btnTranslate.isEnabled = true
+                            btnTranslate.text = "Translate"
+                            Toast.makeText(context, "Translation failed. Please try again.", Toast.LENGTH_LONG).show()
+                        }
+                        translator.close()
+                    }
             }
-        }
+            .addOnFailureListener {
+                if (isAdded) {
+                    btnTranslate.isEnabled = true
+                    btnTranslate.text = "Translate"
+                    Toast.makeText(
+                        context,
+                        "Model download failed. Internet is required the first time to download the offline model.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                translator.close()
+            }
     }
 }
