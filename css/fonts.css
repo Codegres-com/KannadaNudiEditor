@@ -1,5 +1,43 @@
 
 @font-face {
+    font-family: 'SmartNudi1';
+    src: url('../fonts/SmartNudi1-Regular_0.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SmartNudi1';
+    src: url('../fonts/SmartNudi1-Bold_0.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SmartNudi1';
+    src: url('../fonts/SmartNudi1-Light_0.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SmartNudi1';
+    src: url('../fonts/SmartNudi1-ExtraBold_0.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+}
+
+.ql-font-smartnudi1 {
+    font-family: 'SmartNudi1';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="smartnudi1"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="smartnudi1"]::before {
+    content: 'SmartNudi1';
+    font-family: 'SmartNudi1';
+}
+
+@font-face {
     font-family: 'Nudi 02 e';
     src: url('../fonts/Nudi 02 e.ttf') format('truetype');
 }

@@ -46,17 +46,17 @@ h1:focus {
     overflow-y: auto;
     /*
        Font Stack Strategy:
-       1. 'Kannada Sangam MN': Apple System Font. Essential for correct ligature shaping on iOS/macOS.
-          No import needed as it's pre-installed on Apple devices.
-       2. 'Nudi Parijatha': Custom font (imported via fonts.css). Default for Windows/Android.
-       3. 'Tunga', 'Mallige': Fallback system fonts for Windows/Linux.
+       1. 'SmartNudi1': Primary Unicode Kannada font (default).
+       2. 'Kannada Sangam MN': Apple system font fallback for iOS/macOS ligature shaping.
+       3. 'Nudi Parijatha': Legacy custom font fallback.
+       4. 'Tunga', 'Mallige': System font fallbacks for Windows/Linux.
     */
-    font-family: 'Kannada Sangam MN', 'Nudi Parijatha', 'Tunga', 'Mallige', 'Poppins', sans-serif;
+    font-family: 'SmartNudi1', 'Kannada Sangam MN', 'Nudi Parijatha', 'Tunga', 'Mallige', 'Poppins', sans-serif;
     font-size: 200%;
     /* Enable advanced text rendering for ligatures */
     text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1, "liga" 1;
-    -webkit-font-feature-settings: "kern" 1, "liga" 1;
+    font-feature-settings: normal;
+    -webkit-font-feature-settings: normal;
 }
 
 @media (max-width: 576px) {
@@ -109,17 +109,36 @@ a, .btn-link {
     content: var(--blazor-load-percentage-text, "Loading");
 }
 
-/* iOS/Mac-specific override to ensure Kannada ligatures render correctly */
+/* iOS/iPhone-specific overrides */
 @supports (-webkit-touch-callout: none) {
     .ql-editor, .ql-editor * {
-        /* Force System Font on iOS to fix ligature rendering, overriding inline Quill styles */
-        font-family: 'Kannada Sangam MN', 'Nudi Parijatha', sans-serif !important;
         /*
-           Use 'normal' to enable all OpenType features (including 'blwf', 'cjct' for conjuncts).
-           Explicitly setting "liga" 1 disables other features, breaking complex script rendering.
+           SmartNudi1 is a Unicode font with proper OpenType tables and renders correctly on iOS.
+           Fall back to Kannada Sangam MN (system font) if SmartNudi1 fails to load.
+           Use 'normal' to enable ALL OpenType features (blwf, cjct, etc.) needed for Kannada conjuncts.
         */
+        font-family: 'SmartNudi1', 'Kannada Sangam MN', sans-serif !important;
         font-feature-settings: normal !important;
         -webkit-font-feature-settings: normal !important;
         text-rendering: optimizeLegibility;
+    }
+
+    /* Safe area padding for iPhone notch / Dynamic Island / home indicator */
+    html, body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+
+    /* Prevent elastic overscroll on iOS */
+    body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Ensure editor scroll works properly on iOS */
+    .ql-editor {
+        -webkit-overflow-scrolling: touch;
     }
 }
