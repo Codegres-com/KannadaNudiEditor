@@ -1,0 +1,6 @@
+framework module Pods_KannadaNudi {
+  umbrella header "Pods-KannadaNudi-umbrella.h"
+
+  export *
+  module * { export * }
+}

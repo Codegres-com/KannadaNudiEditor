@@ -1,0 +1,609 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		07BA1F77C5EC4CE39CCEDE10 /* KannadaKeyboard/UI/KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032E6FA0479949B7A6AAFC20 /* KannadaKeyboard/UI/KeyboardView.swift */; };
+		0C86AB8A4F584E85AB121E60 /* KannadaKeyboard/KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912654DDB9E74EAE8C722383 /* KannadaKeyboard/KeyboardViewController.swift */; };
+		1E689B79CB854C809A5464CC /* KannadaNudi/KannadaNudiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A293C5BABD445008EA6E616 /* KannadaNudi/KannadaNudiApp.swift */; };
+		2AE73FC7572F4527863F34A6 /* KannadaKeyboard/UI/Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 710DDB09D69D4AD1893F6A97 /* KannadaKeyboard/UI/Theme.swift */; };
+		3D0EB157EAF7465B80F33CC9 /* KannadaKeyboard/UI/KeyButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E36951E3AC47EFB0359255 /* KannadaKeyboard/UI/KeyButton.swift */; };
+		4D99561B87604B949EAE5E35 /* KannadaNudi/ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3704754B0D394502A8695B44 /* KannadaNudi/ContentView.swift */; };
+		52FC443C8963972827222BAF /* Pods_KannadaNudi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 616DC427EAB74144CAD29018 /* Pods_KannadaNudi.framework */; };
+		62532FBE6F9E48A1974EDCB6 /* KannadaKeyboard/Logic/Trie.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABBB6756876F4648863BA715 /* KannadaKeyboard/Logic/Trie.swift */; };
+		6EABF38E9991400F8DE57016 /* KannadaKeyboard/UI/CandidatesRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31789E9ECE746A7AD472ED5 /* KannadaKeyboard/UI/CandidatesRow.swift */; };
+		7D03BA3A5E0B4903AE459048 /* KannadaKeyboard/Logic/DictionaryLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454F75A4FF244CE1B9A61253 /* KannadaKeyboard/Logic/DictionaryLoader.swift */; };
+		9EBA9897141241ABBFECE2B7 /* KannadaKeyboard.appex in CopyFiles */ = {isa = PBXBuildFile; fileRef = 542D8E36691240968B82E4FE /* KannadaKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A41930290E8941E5BD4E85E0 /* KannadaKeyboard/Logic/TransliterationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 513B131EBBB141978A833C36 /* KannadaKeyboard/Logic/TransliterationEngine.swift */; };
+		CACA00020000000000000001 /* KannadaNudi/Logic/LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA00010000000000000001 /* KannadaNudi/Logic/LanguageManager.swift */; };
+		CACA00020000000000000002 /* KannadaNudi/UI/OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA00010000000000000002 /* KannadaNudi/UI/OnboardingView.swift */; };
+		CACA00020000000000000003 /* KannadaNudi/UI/EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA00010000000000000003 /* KannadaNudi/UI/EditorView.swift */; };
+		CACA00020000000000000004 /* KannadaNudi/UI/SpeechView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA00010000000000000004 /* KannadaNudi/UI/SpeechView.swift */; };
+		CACA00020000000000000007 /* KannadaNudi/UI/KeyboardPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA00010000000000000007 /* KannadaNudi/UI/KeyboardPreviewView.swift */; };
+		CACA00020000000000000008 /* KannadaNudi/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CACA00010000000000000008 /* KannadaNudi/Assets.xcassets */; };
+		CACA00020000000000000009 /* KannadaNudi/Logic/SpeechManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA00010000000000000009 /* KannadaNudi/Logic/SpeechManager.swift */; };
+		CACA00020000000000000101 /* KannadaKeyboard/Logic/DictionaryLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454F75A4FF244CE1B9A61253 /* KannadaKeyboard/Logic/DictionaryLoader.swift */; };
+		CACA00020000000000000102 /* KannadaKeyboard/Logic/TransliterationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 513B131EBBB141978A833C36 /* KannadaKeyboard/Logic/TransliterationEngine.swift */; };
+		CACA00020000000000000103 /* KannadaKeyboard/Logic/Trie.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABBB6756876F4648863BA715 /* KannadaKeyboard/Logic/Trie.swift */; };
+		CACA00020000000000000104 /* KannadaKeyboard/UI/CandidatesRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31789E9ECE746A7AD472ED5 /* KannadaKeyboard/UI/CandidatesRow.swift */; };
+		CACA00020000000000000105 /* KannadaKeyboard/UI/KeyButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E36951E3AC47EFB0359255 /* KannadaKeyboard/UI/KeyButton.swift */; };
+		CACA00020000000000000106 /* KannadaKeyboard/UI/KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032E6FA0479949B7A6AAFC20 /* KannadaKeyboard/UI/KeyboardView.swift */; };
+		CACA00020000000000000107 /* KannadaKeyboard/UI/Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 710DDB09D69D4AD1893F6A97 /* KannadaKeyboard/UI/Theme.swift */; };
+		CE52907C6CCD4A9BBE54351D /* KannadaKeyboard/Resources/kannada_wordList.txt in Resources */ = {isa = PBXBuildFile; fileRef = 45D5A12C7AB54BCB897AB431 /* KannadaKeyboard/Resources/kannada_wordList.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		51DC10ABAB1641CB8551640E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B3F3172DC92F49F4AF8AA5E5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AE46054391E14A219D7FB146;
+			remoteInfo = KannadaKeyboard;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3F1CE77CDEA6423798E9A02E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 0;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9EBA9897141241ABBFECE2B7 /* KannadaKeyboard.appex in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		032E6FA0479949B7A6AAFC20 /* KannadaKeyboard/UI/KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/UI/KeyboardView.swift; sourceTree = "<group>"; };
+		0A293C5BABD445008EA6E616 /* KannadaNudi/KannadaNudiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/KannadaNudiApp.swift; sourceTree = "<group>"; };
+		36FCC92BD81A45B6B6B72280 /* KannadaKeyboard/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = KannadaKeyboard/Info.plist; sourceTree = "<group>"; };
+		3704754B0D394502A8695B44 /* KannadaNudi/ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/ContentView.swift; sourceTree = "<group>"; };
+		454F75A4FF244CE1B9A61253 /* KannadaKeyboard/Logic/DictionaryLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/Logic/DictionaryLoader.swift; sourceTree = "<group>"; };
+		45D5A12C7AB54BCB897AB431 /* KannadaKeyboard/Resources/kannada_wordList.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = KannadaKeyboard/Resources/kannada_wordList.txt; sourceTree = "<group>"; };
+		513B131EBBB141978A833C36 /* KannadaKeyboard/Logic/TransliterationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/Logic/TransliterationEngine.swift; sourceTree = "<group>"; };
+		51B7245B880C4850BE706B6C /* KannadaNudi/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = KannadaNudi/Info.plist; sourceTree = "<group>"; };
+		542D8E36691240968B82E4FE /* KannadaKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KannadaKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		616DC427EAB74144CAD29018 /* Pods_KannadaNudi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KannadaNudi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		70FF1FEAEDAACD2D9A9523BB /* Pods-KannadaNudi.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KannadaNudi.release.xcconfig"; path = "Target Support Files/Pods-KannadaNudi/Pods-KannadaNudi.release.xcconfig"; sourceTree = "<group>"; };
+		710DDB09D69D4AD1893F6A97 /* KannadaKeyboard/UI/Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/UI/Theme.swift; sourceTree = "<group>"; };
+		912654DDB9E74EAE8C722383 /* KannadaKeyboard/KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/KeyboardViewController.swift; sourceTree = "<group>"; };
+		ABBB6756876F4648863BA715 /* KannadaKeyboard/Logic/Trie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/Logic/Trie.swift; sourceTree = "<group>"; };
+		BE0DD0988CEB45779F229A00 /* KannadaNudi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KannadaNudi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C31789E9ECE746A7AD472ED5 /* KannadaKeyboard/UI/CandidatesRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/UI/CandidatesRow.swift; sourceTree = "<group>"; };
+		CACA00010000000000000001 /* KannadaNudi/Logic/LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/Logic/LanguageManager.swift; sourceTree = "<group>"; };
+		CACA00010000000000000002 /* KannadaNudi/UI/OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/UI/OnboardingView.swift; sourceTree = "<group>"; };
+		CACA00010000000000000003 /* KannadaNudi/UI/EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/UI/EditorView.swift; sourceTree = "<group>"; };
+		CACA00010000000000000004 /* KannadaNudi/UI/SpeechView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/UI/SpeechView.swift; sourceTree = "<group>"; };
+		CACA00010000000000000007 /* KannadaNudi/UI/KeyboardPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/UI/KeyboardPreviewView.swift; sourceTree = "<group>"; };
+		CACA00010000000000000008 /* KannadaNudi/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = KannadaNudi/Assets.xcassets; sourceTree = "<group>"; };
+		CACA00010000000000000009 /* KannadaNudi/Logic/SpeechManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaNudi/Logic/SpeechManager.swift; sourceTree = "<group>"; };
+		F7232BAA4362ABC2FBF43809 /* Pods-KannadaNudi.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KannadaNudi.debug.xcconfig"; path = "Target Support Files/Pods-KannadaNudi/Pods-KannadaNudi.debug.xcconfig"; sourceTree = "<group>"; };
+		F8E36951E3AC47EFB0359255 /* KannadaKeyboard/UI/KeyButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KannadaKeyboard/UI/KeyButton.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0BF0693B8B034100A2EED722 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 0;
+			files = (
+				52FC443C8963972827222BAF /* Pods_KannadaNudi.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A282C02FCECE47D0A5215E3D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		06D5DD23CB5D4B868D89F834 = {
+			isa = PBXGroup;
+			children = (
+				D0F7E973204B42BBB8550817 /* KannadaNudi */,
+				41ECB2F8B595430DB93A47EB /* KannadaKeyboard */,
+				A84FDE6FC30B4112829EAD95 /* Products */,
+				368489337CC2BE20493D87CB /* Pods */,
+				2911E8A2BD6FF2EBD799DFDE /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		2911E8A2BD6FF2EBD799DFDE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				616DC427EAB74144CAD29018 /* Pods_KannadaNudi.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		368489337CC2BE20493D87CB /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				F7232BAA4362ABC2FBF43809 /* Pods-KannadaNudi.debug.xcconfig */,
+				70FF1FEAEDAACD2D9A9523BB /* Pods-KannadaNudi.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		41ECB2F8B595430DB93A47EB /* KannadaKeyboard */ = {
+			isa = PBXGroup;
+			children = (
+				912654DDB9E74EAE8C722383 /* KannadaKeyboard/KeyboardViewController.swift */,
+				43452604AD204311B27EB2ED /* Logic */,
+				A38AE37B263C43EDAB4F4276 /* UI */,
+				547027619EB5402393C8C61C /* Resources */,
+				36FCC92BD81A45B6B6B72280 /* KannadaKeyboard/Info.plist */,
+			);
+			name = KannadaKeyboard;
+			sourceTree = "<group>";
+		};
+		43452604AD204311B27EB2ED /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				454F75A4FF244CE1B9A61253 /* KannadaKeyboard/Logic/DictionaryLoader.swift */,
+				513B131EBBB141978A833C36 /* KannadaKeyboard/Logic/TransliterationEngine.swift */,
+				ABBB6756876F4648863BA715 /* KannadaKeyboard/Logic/Trie.swift */,
+			);
+			name = Logic;
+			sourceTree = "<group>";
+		};
+		547027619EB5402393C8C61C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				45D5A12C7AB54BCB897AB431 /* KannadaKeyboard/Resources/kannada_wordList.txt */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		A38AE37B263C43EDAB4F4276 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				C31789E9ECE746A7AD472ED5 /* KannadaKeyboard/UI/CandidatesRow.swift */,
+				F8E36951E3AC47EFB0359255 /* KannadaKeyboard/UI/KeyButton.swift */,
+				032E6FA0479949B7A6AAFC20 /* KannadaKeyboard/UI/KeyboardView.swift */,
+				710DDB09D69D4AD1893F6A97 /* KannadaKeyboard/UI/Theme.swift */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		A84FDE6FC30B4112829EAD95 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BE0DD0988CEB45779F229A00 /* KannadaNudi.app */,
+				542D8E36691240968B82E4FE /* KannadaKeyboard.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CACA00030000000000000001 /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				CACA00010000000000000001 /* KannadaNudi/Logic/LanguageManager.swift */,
+				CACA00010000000000000009 /* KannadaNudi/Logic/SpeechManager.swift */,
+			);
+			name = Logic;
+			sourceTree = "<group>";
+		};
+		CACA00030000000000000002 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				CACA00010000000000000002 /* KannadaNudi/UI/OnboardingView.swift */,
+				CACA00010000000000000003 /* KannadaNudi/UI/EditorView.swift */,
+				CACA00010000000000000004 /* KannadaNudi/UI/SpeechView.swift */,
+				CACA00010000000000000007 /* KannadaNudi/UI/KeyboardPreviewView.swift */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		D0F7E973204B42BBB8550817 /* KannadaNudi */ = {
+			isa = PBXGroup;
+			children = (
+				3704754B0D394502A8695B44 /* KannadaNudi/ContentView.swift */,
+				0A293C5BABD445008EA6E616 /* KannadaNudi/KannadaNudiApp.swift */,
+				51B7245B880C4850BE706B6C /* KannadaNudi/Info.plist */,
+				CACA00030000000000000001 /* Logic */,
+				CACA00030000000000000002 /* UI */,
+				CACA00010000000000000008 /* KannadaNudi/Assets.xcassets */,
+			);
+			name = KannadaNudi;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		11083F7EB444480BA1C6ACFF /* KannadaNudi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 914A95D06DBB4B008E2531C6 /* Build configuration list for PBXNativeTarget "KannadaNudi" */;
+			buildPhases = (
+				DE9BBC20469BE3FF3A8DF050 /* [CP] Check Pods Manifest.lock */,
+				710AD3586BD24CBAA506FF31 /* Sources */,
+				0BF0693B8B034100A2EED722 /* Frameworks */,
+				B2A59B262D5C4AF490067ECE /* Resources */,
+				3F1CE77CDEA6423798E9A02E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A2CC63B811454C7DB98D2129 /* PBXTargetDependency */,
+			);
+			name = KannadaNudi;
+			productName = KannadaNudi;
+			productReference = BE0DD0988CEB45779F229A00 /* KannadaNudi.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AE46054391E14A219D7FB146 /* KannadaKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 35F6C407628248F09D83F8A5 /* Build configuration list for PBXNativeTarget "KannadaKeyboard" */;
+			buildPhases = (
+				4ED7604B483B43A58A547CCF /* Sources */,
+				A282C02FCECE47D0A5215E3D /* Frameworks */,
+				D6F8ED906F5E416384A61D6A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KannadaKeyboard;
+			productName = KannadaKeyboard;
+			productReference = 542D8E36691240968B82E4FE /* KannadaKeyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B3F3172DC92F49F4AF8AA5E5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					11083F7EB444480BA1C6ACFF = {
+						CreatedOnToolsVersion = 12.0;
+					};
+					AE46054391E14A219D7FB146 = {
+						CreatedOnToolsVersion = 12.0;
+					};
+				};
+			};
+			buildConfigurationList = EBA182B6CD73453FA9AFCEFD /* Build configuration list for PBXProject "KannadaNudi" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 06D5DD23CB5D4B868D89F834;
+			productRefGroup = A84FDE6FC30B4112829EAD95 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				11083F7EB444480BA1C6ACFF /* KannadaNudi */,
+				AE46054391E14A219D7FB146 /* KannadaKeyboard */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B2A59B262D5C4AF490067ECE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 0;
+			files = (
+				CACA00020000000000000008 /* KannadaNudi/Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D6F8ED906F5E416384A61D6A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 0;
+			files = (
+				CE52907C6CCD4A9BBE54351D /* KannadaKeyboard/Resources/kannada_wordList.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		DE9BBC20469BE3FF3A8DF050 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-KannadaNudi-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4ED7604B483B43A58A547CCF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 0;
+			files = (
+				0C86AB8A4F584E85AB121E60 /* KannadaKeyboard/KeyboardViewController.swift in Sources */,
+				7D03BA3A5E0B4903AE459048 /* KannadaKeyboard/Logic/DictionaryLoader.swift in Sources */,
+				A41930290E8941E5BD4E85E0 /* KannadaKeyboard/Logic/TransliterationEngine.swift in Sources */,
+				62532FBE6F9E48A1974EDCB6 /* KannadaKeyboard/Logic/Trie.swift in Sources */,
+				6EABF38E9991400F8DE57016 /* KannadaKeyboard/UI/CandidatesRow.swift in Sources */,
+				3D0EB157EAF7465B80F33CC9 /* KannadaKeyboard/UI/KeyButton.swift in Sources */,
+				07BA1F77C5EC4CE39CCEDE10 /* KannadaKeyboard/UI/KeyboardView.swift in Sources */,
+				2AE73FC7572F4527863F34A6 /* KannadaKeyboard/UI/Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		710AD3586BD24CBAA506FF31 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 0;
+			files = (
+				4D99561B87604B949EAE5E35 /* KannadaNudi/ContentView.swift in Sources */,
+				1E689B79CB854C809A5464CC /* KannadaNudi/KannadaNudiApp.swift in Sources */,
+				CACA00020000000000000001 /* KannadaNudi/Logic/LanguageManager.swift in Sources */,
+				CACA00020000000000000009 /* KannadaNudi/Logic/SpeechManager.swift in Sources */,
+				CACA00020000000000000002 /* KannadaNudi/UI/OnboardingView.swift in Sources */,
+				CACA00020000000000000003 /* KannadaNudi/UI/EditorView.swift in Sources */,
+				CACA00020000000000000004 /* KannadaNudi/UI/SpeechView.swift in Sources */,
+				CACA00020000000000000007 /* KannadaNudi/UI/KeyboardPreviewView.swift in Sources */,
+				CACA00020000000000000101 /* KannadaKeyboard/Logic/DictionaryLoader.swift in Sources */,
+				CACA00020000000000000102 /* KannadaKeyboard/Logic/TransliterationEngine.swift in Sources */,
+				CACA00020000000000000103 /* KannadaKeyboard/Logic/Trie.swift in Sources */,
+				CACA00020000000000000104 /* KannadaKeyboard/UI/CandidatesRow.swift in Sources */,
+				CACA00020000000000000105 /* KannadaKeyboard/UI/KeyButton.swift in Sources */,
+				CACA00020000000000000106 /* KannadaKeyboard/UI/KeyboardView.swift in Sources */,
+				CACA00020000000000000107 /* KannadaKeyboard/UI/Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A2CC63B811454C7DB98D2129 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AE46054391E14A219D7FB146 /* KannadaKeyboard */;
+			targetProxy = 51DC10ABAB1641CB8551640E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		133532BD3C754B759321993C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 70FF1FEAEDAACD2D9A9523BB /* Pods-KannadaNudi.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = T4YF8RZCVA;
+				INFOPLIST_FILE = KannadaNudi/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Kannada Nudi Editor";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = editor.kannada.nudi;
+				PRODUCT_NAME = KannadaNudi;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		81F23306CFED436CAE598F83 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = T4YF8RZCVA;
+				INFOPLIST_FILE = KannadaKeyboard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = editor.kannada.nudi.KannadaKeyboard;
+				PRODUCT_NAME = KannadaKeyboard;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				MARKETING_VERSION = 1.1;
+				CURRENT_PROJECT_VERSION = 3;
+			};
+			name = Debug;
+		};
+		9D2834789A5C489D82764E25 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B2BE3E7BC9A54CE9ACF617CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = T4YF8RZCVA;
+				INFOPLIST_FILE = KannadaKeyboard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = editor.kannada.nudi.KannadaKeyboard;
+				PRODUCT_NAME = KannadaKeyboard;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				MARKETING_VERSION = 1.1;
+				CURRENT_PROJECT_VERSION = 3;
+			};
+			name = Release;
+		};
+		BDA6C9C77D9F4E0D98D6BCF5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F7232BAA4362ABC2FBF43809 /* Pods-KannadaNudi.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = T4YF8RZCVA;
+				INFOPLIST_FILE = KannadaNudi/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Kannada Nudi Editor";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = editor.kannada.nudi;
+				PRODUCT_NAME = KannadaNudi;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C1B18272062F41F294A72261 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		35F6C407628248F09D83F8A5 /* Build configuration list for PBXNativeTarget "KannadaKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				81F23306CFED436CAE598F83 /* Debug */,
+				B2BE3E7BC9A54CE9ACF617CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		914A95D06DBB4B008E2531C6 /* Build configuration list for PBXNativeTarget "KannadaNudi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BDA6C9C77D9F4E0D98D6BCF5 /* Debug */,
+				133532BD3C754B759321993C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EBA182B6CD73453FA9AFCEFD /* Build configuration list for PBXProject "KannadaNudi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1B18272062F41F294A72261 /* Debug */,
+				9D2834789A5C489D82764E25 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B3F3172DC92F49F4AF8AA5E5 /* Project object */;
+}

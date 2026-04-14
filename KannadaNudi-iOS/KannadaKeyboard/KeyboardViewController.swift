@@ -49,12 +49,15 @@ class KeyboardViewController: UIInputViewController {
     // MARK: - Action Handling
 
     private func handleAction(_ action: KeyboardAction) {
-        guard let proxy = textDocumentProxy as? UITextDocumentProxy else { return }
+        let proxy = textDocumentProxy
 
         switch action {
         case .character(let char):
+            // Get context for Matra handling
+            let lastChar = proxy.documentContextBeforeInput?.last
+            
             // Pass to engine
-            let result = transliterationEngine.getTransliteration(key: char)
+            let result = transliterationEngine.getTransliteration(key: char, lastCommittedChar: lastChar)
 
             // Handle backspace count (removing previous chars for composition)
             if result.backspaceCount > 0 {
@@ -94,9 +97,9 @@ class KeyboardViewController: UIInputViewController {
             // Switch to next input mode to allow user to access system dictation
             advanceToNextInputMode()
 
-        case .modeChange:
-            // Todo: Implement numeric layout
-            break
+        case .modeChange, .alphaChange:
+            // Handled via ViewModel in KeyboardView, but we can clear buffer here
+            transliterationEngine.clearBuffer()
 
         case .layoutChange:
             transliterationEngine.setLayout(viewModel.currentLayout == .baraha ? .nudi : .baraha)
@@ -107,7 +110,7 @@ class KeyboardViewController: UIInputViewController {
     }
 
     private func handleCandidateSelection(_ candidate: String) {
-        guard let proxy = textDocumentProxy as? UITextDocumentProxy else { return }
+        let proxy = textDocumentProxy
 
         // Remove current word being typed
         // Strategy: We need to know how much to delete.
@@ -141,7 +144,7 @@ class KeyboardViewController: UIInputViewController {
         // Debounce or async
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard let proxy = self.textDocumentProxy as? UITextDocumentProxy else { return }
+            let proxy = self.textDocumentProxy
 
             if let context = proxy.documentContextBeforeInput {
                 if let lastWord = context.components(separatedBy: CharacterSet.whitespacesAndNewlines).last, !lastWord.isEmpty {

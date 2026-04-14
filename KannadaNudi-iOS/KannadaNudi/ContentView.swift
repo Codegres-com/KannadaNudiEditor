@@ -1,45 +1,59 @@
 import SwiftUI
 
 struct ContentView: View {
+    @ObservedObject var langManager = LanguageManager.shared
+    @State private var selectedTab = 0
+    
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "keyboard")
-                .font(.system(size: 60))
-                .foregroundColor(.blue)
-
-            Text("Kannada Nudi Keyboard")
-                .font(.title)
-                .bold()
-
-            Text("To enable the keyboard:")
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 10) {
-                StepView(number: 1, text: "Open Settings > General > Keyboard")
-                StepView(number: 2, text: "Tap 'Keyboards' > 'Add New Keyboard...'")
-                StepView(number: 3, text: "Select 'KannadaNudi' under Third-Party Keyboards")
-                StepView(number: 4, text: "Tap 'KannadaNudi - KannadaKeyboard'")
-                StepView(number: 5, text: "Toggle 'Allow Full Access' (Optional, for better performance)")
+        NavigationView {
+            TabView(selection: $selectedTab) {
+                OnboardingView()
+                    .tabItem {
+                        Label(langManager.getString(english: "Setup", kannada: "ಸೆಟಪ್"), systemImage: "gear")
+                    }
+                    .tag(0)
+                
+                KeyboardPreviewView()
+                    .tabItem {
+                        Label(langManager.getString(english: "Keyboard", kannada: "ಕೀಬೋರ್ಡ್"), systemImage: "keyboard")
+                    }
+                    .tag(1)
+                
+                SpeechView()
+                    .tabItem {
+                        Label(langManager.getString(english: "Speech", kannada: "ಧ್ವನಿ"), systemImage: "mic")
+                    }
+                    .tag(2)
+                
+                EditorView()
+                    .tabItem {
+                        Label(langManager.getString(english: "Editor", kannada: "ಸಂಪಾದಕ"), systemImage: "pencil.and.outline")
+                    }
+                    .tag(3)
+                
             }
-            .padding()
-            .background(Color(UIColor.secondarySystemBackground))
-            .cornerRadius(10)
-
-            Spacer()
-        }
-        .padding()
-    }
-}
-
-struct StepView: View {
-    let number: Int
-    let text: String
-
-    var body: some View {
-        HStack(alignment: .top) {
-            Text("\(number).")
-                .bold()
-            Text(text)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(langManager.getString(english: "Kannada Nudi", kannada: "ಕನ್ನಡ ನುಡಿ"))
+                        .font(.headline)
+                        .foregroundColor(.blue)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        langManager.toggleLanguage()
+                    }) {
+                        Text(langManager.currentLanguage == .kannada ? "English" : "ಕನ್ನಡ")
+                            .font(.subheadline)
+                            .bold()
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(4)
+                    }
+                }
+            }
         }
     }
 }

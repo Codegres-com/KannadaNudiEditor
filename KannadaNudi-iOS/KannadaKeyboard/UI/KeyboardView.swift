@@ -9,13 +9,20 @@ enum KeyboardAction {
     case globe
     case dictation
     case modeChange // 123
+    case alphaChange // ABC
     case layoutChange // Nudi/Baraha
     case dismiss
+}
+
+enum KeyboardMode {
+    case alpha
+    case numeric
 }
 
 class KeyboardViewModel: ObservableObject {
     @Published var isShifted = false
     @Published var currentLayout: KeyboardLayout = .baraha
+    @Published var currentMode: KeyboardMode = .alpha
     @Published var candidates: [String] = []
 
     func toggleShift() {
@@ -24,6 +31,10 @@ class KeyboardViewModel: ObservableObject {
 
     func toggleLayout() {
         currentLayout = (currentLayout == .baraha) ? .nudi : .baraha
+    }
+
+    func toggleMode() {
+        currentMode = (currentMode == .alpha) ? .numeric : .alpha
     }
 }
 
@@ -36,15 +47,23 @@ struct KeyboardView: View {
     let qwertyRow2 = ["a", "s", "d", "f", "g", "h", "j", "k", "l"]
     let qwertyRow3 = ["z", "x", "c", "v", "b", "n", "m"]
 
-    // Nudi Layout keys
-    let nudiRow1 = ["ದ್", "ತ್", "ಎ", "ರ್", "ಟ್", "ಯ್", "ಉ", "ಇ", "ಒ", "ಪ್"]
+    // Nudi Layout keys (Normal)
+    let nudiRow1 = ["ಟ", "ಡ", "ಎ", "ರ", "ತ", "ಯ", "ಉ", "ಇ", "ಒ", "ಪ"]
+    let nudiRow1Shift = ["ಠ", "ಢ", "ಏ", "ಋ", "ಥ", "ಐ", "ಊ", "ಈ", "ಓ", "ಫ"]
     let nudiRow1Codes = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"]
 
-    let nudiRow2 = ["ಅ", "ಸ್", "ಡ್", "f", "ಗ್", "ಹ್", "ಜ್", "ಕ್", "ಲ್"]
+    let nudiRow2 = ["ಅ", "ಸ", "ದ", "್", "ಗ", "ಹ", "ಜ", "ಕ", "ಲ"]
+    let nudiRow2Shift = ["ಆ", "ಶ", "ಧ", "್", "ಘ", "ಃ", "ಝ", "ಖ", "ಳ"]
     let nudiRow2Codes = ["a", "s", "d", "f", "g", "h", "j", "k", "l"]
 
-    let nudiRow3 = ["z", "x", "ಚ್", "ವ್", "ಬ್", "ಣ್", "ಮ್"]
+    let nudiRow3 = ["ಞ", "ಷ", "ಚ", "ವ", "ಬ", "ನ", "ಮ"]
+    let nudiRow3Shift = ["ಙ", "ಷ", "ಛ", "ಔ", "ಭ", "ಣ", "ಮ"]
     let nudiRow3Codes = ["z", "x", "c", "v", "b", "n", "m"]
+
+    // Numeric Layout
+    let numRow1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+    let numRow2 = ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""]
+    let numRow3 = [".", ",", "?", "!", "\'"]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -53,9 +72,9 @@ struct KeyboardView: View {
                 CandidatesRow(candidates: viewModel.candidates, onSelect: onCandidateSelected)
             }
 
-            // Toolbar (Logo + Switch)
+            // Toolbar
             HStack {
-                Text(viewModel.currentLayout == .baraha ? "Nudi (Phonetic)" : "Nudi (Direct)")
+                Text(viewModel.currentLayout == .baraha ? "Baraha (Phonetic)" : "Nudi (Direct)")
                     .font(.caption)
                     .foregroundColor(Theme.keySpecialBackground)
                     .bold()
@@ -64,7 +83,7 @@ struct KeyboardView: View {
                     onAction(.layoutChange)
                     viewModel.toggleLayout()
                 }) {
-                    Text("Switch Layout")
+                    Text("Switch Engine")
                         .font(.caption)
                         .bold()
                         .padding(6)
@@ -78,7 +97,9 @@ struct KeyboardView: View {
 
             // Keys
             VStack(spacing: 8) {
-                if viewModel.currentLayout == .baraha {
+                if viewModel.currentMode == .numeric {
+                    renderNumeric()
+                } else if viewModel.currentLayout == .baraha {
                     renderQwerty()
                 } else {
                     renderNudi()
@@ -126,15 +147,17 @@ struct KeyboardView: View {
         VStack(spacing: 10) {
             HStack(spacing: 6) {
                 ForEach(0..<nudiRow1.count, id: \.self) { i in
-                    keyButton(label: nudiRow1[i], code: nudiRow1Codes[i])
+                    keyButton(label: viewModel.isShifted ? nudiRow1Shift[i] : nudiRow1[i], 
+                              code: viewModel.isShifted ? nudiRow1Codes[i].uppercased() : nudiRow1Codes[i])
                 }
             }
             HStack(spacing: 6) {
-                Spacer(minLength: 10)
+                Spacer(minLength: 5)
                 ForEach(0..<nudiRow2.count, id: \.self) { i in
-                    keyButton(label: nudiRow2[i], code: nudiRow2Codes[i])
+                    keyButton(label: viewModel.isShifted ? nudiRow2Shift[i] : nudiRow2[i], 
+                              code: viewModel.isShifted ? nudiRow2Codes[i].uppercased() : nudiRow2Codes[i])
                 }
-                Spacer(minLength: 10)
+                Spacer(minLength: 5)
             }
             HStack(spacing: 6) {
                 specialKey(label: "⇧", width: 40, isPressed: viewModel.isShifted) {
@@ -142,7 +165,32 @@ struct KeyboardView: View {
                     viewModel.toggleShift()
                 }
                 ForEach(0..<nudiRow3.count, id: \.self) { i in
-                    keyButton(label: nudiRow3[i], code: nudiRow3Codes[i])
+                    keyButton(label: viewModel.isShifted ? nudiRow3Shift[i] : nudiRow3[i], 
+                              code: viewModel.isShifted ? nudiRow3Codes[i].uppercased() : nudiRow3Codes[i])
+                }
+                specialKey(label: "⌫", width: 40) {
+                    onAction(.backspace)
+                }
+            }
+        }
+    }
+
+    func renderNumeric() -> some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 6) {
+                ForEach(numRow1, id: \.self) { key in
+                    keyButton(label: key, code: key)
+                }
+            }
+            HStack(spacing: 6) {
+                ForEach(numRow2, id: \.self) { key in
+                    keyButton(label: key, code: key)
+                }
+            }
+            HStack(spacing: 6) {
+                Spacer(minLength: 40)
+                ForEach(numRow3, id: \.self) { key in
+                    keyButton(label: key, code: key)
                 }
                 specialKey(label: "⌫", width: 40) {
                     onAction(.backspace)
@@ -153,8 +201,9 @@ struct KeyboardView: View {
 
     func renderBottomRow() -> some View {
         HStack(spacing: 6) {
-            specialKey(label: "123", width: 40) {
-                // Not implemented fully
+            specialKey(label: viewModel.currentMode == .numeric ? "ABC" : "123", width: 60) {
+                onAction(viewModel.currentMode == .numeric ? .alphaChange : .modeChange)
+                viewModel.toggleMode()
             }
             specialKey(label: "🌐", width: 40) {
                 onAction(.globe)
@@ -173,11 +222,13 @@ struct KeyboardView: View {
 
     // Helper to generate key
     func keyButton(label: String, code: String) -> some View {
-        let displayLabel = viewModel.isShifted ? label.uppercased() : label
+        // For Baraha, we just use the code directly but display it uppercase if shifted
+        let displayLabel = (viewModel.currentMode == .alpha && viewModel.currentLayout == .baraha && viewModel.isShifted) ? label.uppercased() : label
 
         return KeyButton(label: displayLabel) {
             var finalCode = code
-            if viewModel.isShifted {
+            // Shift handling for Baraha is done by uppercasing the key code
+            if viewModel.currentLayout == .baraha && viewModel.isShifted {
                 finalCode = finalCode.uppercased()
             }
             onAction(.character(finalCode))
@@ -187,20 +238,16 @@ struct KeyboardView: View {
     func specialKey(label: String, width: CGFloat? = nil, isPressed: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(Theme.keySpecialText)
-                .frame(maxWidth: width == nil ? .infinity : width, maxHeight: 50)
+                .frame(maxWidth: width == nil ? .infinity : width, maxHeight: 45)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(Theme.keySpecialBackground)
                         .shadow(color: Theme.keyShadow, radius: 1, x: 0, y: 1)
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                )
                 .scaleEffect(isPressed ? 0.95 : 1.0)
-                .opacity(isPressed ? 0.8 : 1.0)
         }
     }
 }
+

@@ -3,6 +3,7 @@ import Foundation
 enum KeyboardLayout {
     case nudi
     case baraha
+    case english
 }
 
 struct TransliterationResult {
@@ -16,33 +17,52 @@ class TransliterationEngine {
 
     // MARK: - Maps
 
-    // Nudi Map (Direct/Legacy)
+    // Nudi Map (Direct Layout) - Independent Chars
     private let nudiMap: [String: String] = [
-        // Consonants
-        "k": "ಕ್", "g": "ಗ್", "c": "ಚ್", "j": "ಜ್",
-        "t": "ಟ್", "d": "ಡ್", "N": "ಣ್",
-        "w": "ತ್", "q": "ದ್", "n": "ನ್",
-        "p": "ಪ್", "b": "ಬ್", "m": "ಮ್",
-        "y": "ಯ್", "r": "ರ್", "l": "ಲ್", "v": "ವ್",
-        "s": "ಸ್", "h": "ಹ್", "L": "ಳ್",
+        // Top Row
+        "q": "ಟ", "Q": "ಠ",
+        "w": "ಡ", "W": "ಢ",
+        "e": "ಎ", "E": "ಏ",
+        "r": "ರ", "R": "ಋ",
+        "t": "ತ", "T": "ಥ",
+        "y": "ಯ", "Y": "ಐ",
+        "u": "ಉ", "U": "ಊ",
+        "i": "ಇ", "I": "ಈ",
+        "o": "ಒ", "O": "ಓ",
+        "p": "ಪ", "P": "ಫ",
 
-        // Vowels
-        "a": "ಅ", "A": "ಆ", "i": "ಇ", "I": "ಈ",
-        "u": "ಉ", "U": "ಊ", "e": "ಎ", "E": "ಏ",
-        "o": "ಒ", "O": "ಓ"
+        // Middle Row
+        "a": "ಅ", "A": "ಆ",
+        "s": "ಸ", "S": "ಶ",
+        "d": "ದ", "D": "ಧ",
+        "f": "್", "F": "್",
+        "g": "ಗ", "G": "ಘ",
+        "h": "ಹ", "H": "ಃ", // Visarga
+        "j": "ಜ", "J": "ಝ",
+        "k": "ಕ", "K": "ಖ",
+        "l": "ಲ", "L": "ಳ",
+
+        // Bottom Row
+        "z": "ಞ", "Z": "ಙ",
+        "x": "ಷ", "X": "ಷ",
+        "c": "ಚ", "C": "ಛ",
+        "v": "ವ", "V": "ಔ",
+        "b": "ಬ", "B" : "ಭ",
+        "n": "ನ", "N": "ಣ",
+        "m": "ಮ", "M": "ಂ"
     ]
 
+    // Matra Map (Vowel Signs)
     private let nudiVowelSigns: [String: String] = [
-        "a": "", // 'a' removes halant
         "A": "ಾ",
-        "i": "ಿ",
-        "I": "ೀ",
-        "u": "ು",
-        "U": "ೂ",
-        "e": "ೆ",
-        "E": "ೇ",
-        "o": "ೊ",
-        "O": "ೋ"
+        "i": "ಿ", "I": "ೀ",
+        "u": "ು", "U": "ೂ",
+        "R": "ೃ",
+        "e": "ೆ", "E": "ೇ",
+        "Y": "ೈ", // Shift+y = I -> Matra ai
+        "o": "ೊ", "O": "ೋ",
+        "V": "ೌ" // Shift+v = au Matra
+        // 'a' has no matra (implicit)
     ]
 
     // Baraha Map (Phonetic)
@@ -104,51 +124,46 @@ class TransliterationEngine {
         }
     }
 
-    func getTransliteration(key: String) -> TransliterationResult {
+    func getTransliteration(key: String, lastCommittedChar: Character? = nil) -> TransliterationResult {
         if key.isEmpty {
-            return TransliterationResult(text: "", backspaceCount: 0)
+          return TransliterationResult(text: "", backspaceCount: 0)
         }
 
-        if currentLayout == .nudi {
-            return getNudiTransliteration(key: key)
-        } else {
+        switch currentLayout {
+        case .nudi:
+            return getNudiTransliteration(key: key, lastCommittedChar: lastCommittedChar)
+        case .baraha:
             return getBarahaTransliteration(key: key)
+        case .english:
+            buffer = ""
+            return TransliterationResult(text: key, backspaceCount: 0)
         }
     }
 
-    private func getNudiTransliteration(key: String) -> TransliterationResult {
-        // Nudi/KGP Legacy Logic:
+    private func getNudiTransliteration(key: String, lastCommittedChar: Character?) -> TransliterationResult {
+        // Direct Mapping with Matra Composition Context
 
-        // If key is a vowel modifier and buffer ends in consonant key
-        if nudiVowelSigns.keys.contains(key), !buffer.isEmpty {
-            let lastKey = String(buffer.last!)
-            if isNudiConsonantKey(lastKey) {
-                if let halantForm = nudiMap[lastKey], let sign = nudiVowelSigns[key] {
-                    // halantForm e.g. "ಕ್" (0C95 0CCD)
-                    let baseForm = halantForm.trimmingCharacters(in: CharacterSet(charactersIn: "\u{0CCD}"))
-                    let replacement = baseForm + sign
-
-                    // Swift string count might count grapheme clusters, but input proxy usually deletes by character code units?
-                    // Actually, iOS backspace count is usually by character.
-                    // "ಕ್" is 2 chars.
-                    let removeCount = halantForm.count
-
-                    buffer.append(key)
-                    return TransliterationResult(text: replacement, backspaceCount: removeCount)
-                }
-            }
+        // 1. Check if key is a vowel that should become a Matra
+        if let last = lastCommittedChar, isKannadaConsonant(last), let matra = nudiVowelSigns[key] {
+            return TransliterationResult(text: matra, backspaceCount: 0)
         }
 
-        // If key is a consonant
+        // 2. Default: Map to Independent Char
         if let val = nudiMap[key] {
-            buffer.append(key)
+            buffer = ""
             return TransliterationResult(text: val, backspaceCount: 0)
         }
 
-        // Default
+        // Pass through if not found
         buffer = ""
-        buffer.append(key)
         return TransliterationResult(text: key, backspaceCount: 0)
+    }
+
+    private func isKannadaConsonant(_ c: Character) -> Bool {
+        // Range for Kannada Consonants: 0x0C95 (ka) to 0x0CB9 (ha)
+        guard let scalar = c.unicodeScalars.first else { return false }
+        let code = scalar.value
+        return (code >= 0x0C95 && code <= 0x0CB9)
     }
 
     private func getBarahaTransliteration(key: String) -> TransliterationResult {
@@ -157,26 +172,17 @@ class TransliterationEngine {
         if !buffer.isEmpty {
             // 1. Try to match longest sequence backwards for VOWEL MODIFIERS on CONSONANTS
             let combinedCount = combinedKey.count
-            // Swift strings are tricky with indices. Using integer loops for easier porting logic.
-            // But we need to handle unicode properly if keys are unicode. Assuming keys are ASCII/single chars for now as per maps.
 
             for i in (0..<combinedCount).reversed() {
-                // i is the split point.
-                // substring(0, i) -> prefix
-                // substring(i) -> suffix
-
                 let index = combinedKey.index(combinedKey.startIndex, offsetBy: i)
                 let potentialConsonantToken = String(combinedKey[..<index])
                 let potentialVowelToken = String(combinedKey[index...])
 
-                if let _ = barahaMap[potentialConsonantToken], isBarahaConsonant(potentialConsonantToken) {
+                if let consChar = barahaMap[potentialConsonantToken], isBarahaConsonant(potentialConsonantToken) {
                     if let matra = barahaVowelSigns[potentialVowelToken] {
                         // Found C+V combo
                         let previousOutput = recalculateOutput(bufferKeys: buffer)
-
-                        let consChar = barahaMap[potentialConsonantToken]!
                         let baseChar = consChar.trimmingCharacters(in: CharacterSet(charactersIn: "\u{0CCD}"))
-
                         let replacement = baseChar + matra
 
                         buffer.append(key)
@@ -216,8 +222,7 @@ class TransliterationEngine {
             let c = String(bufferKeys[..<index])
             let v = String(bufferKeys[index...])
 
-            if let _ = barahaMap[c], isBarahaConsonant(c), let matra = barahaVowelSigns[v] {
-                let cons = barahaMap[c]!
+            if let cons = barahaMap[c], isBarahaConsonant(c), let matra = barahaVowelSigns[v] {
                 let baseChar = cons.trimmingCharacters(in: CharacterSet(charactersIn: "\u{0CCD}"))
                 return baseChar + matra
             }
@@ -230,12 +235,9 @@ class TransliterationEngine {
         return ""
     }
 
-    private func isNudiConsonantKey(_ k: String) -> Bool {
-        return nudiMap.keys.contains(k) && !nudiVowelSigns.keys.contains(k)
-    }
-
     private func isBarahaConsonant(_ k: String) -> Bool {
         guard let value = barahaMap[k] else { return false }
         return value.hasSuffix("\u{0CCD}")
     }
 }
+
