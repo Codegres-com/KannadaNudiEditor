@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.mlkit.common.model.DownloadConditions
@@ -20,8 +21,12 @@ import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
 
-class TranslateFragment : Fragment() {
+class TranslateFragment : Fragment(), LanguageManager.OnLanguageChangeListener {
 
+    private lateinit var tvTranslateTitle: TextView
+    private lateinit var tvSourceLabel: TextView
+    private lateinit var tvInputLabel: TextView
+    private lateinit var tvOutputLabel: TextView
     private lateinit var spinnerSourceLang: Spinner
     private lateinit var etInputText: EditText
     private lateinit var etOutputText: EditText
@@ -56,6 +61,10 @@ class TranslateFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_translate, container, false)
 
+        tvTranslateTitle = view.findViewById(R.id.tvTranslateTitle)
+        tvSourceLabel = view.findViewById(R.id.tvSourceLabel)
+        tvInputLabel = view.findViewById(R.id.tvInputLabel)
+        tvOutputLabel = view.findViewById(R.id.tvOutputLabel)
         spinnerSourceLang = view.findViewById(R.id.spinnerSourceLang)
         etInputText = view.findViewById(R.id.etInputText)
         etOutputText = view.findViewById(R.id.etOutputText)
@@ -69,7 +78,8 @@ class TranslateFragment : Fragment() {
         btnTranslate.setOnClickListener {
             val inputText = etInputText.text.toString().trim()
             if (inputText.isEmpty()) {
-                Toast.makeText(context, "Please enter text to translate", Toast.LENGTH_SHORT).show()
+                val msg = if (LanguageManager.isKannada()) "ದಯವಿಟ್ಟು ಅನುವಾದಿಸಲು ಪಠ್ಯ ನಮೂದಿಸಿ" else "Please enter text to translate"
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val sourceLangCode = languages[spinnerSourceLang.selectedItemPosition].second
@@ -84,13 +94,42 @@ class TranslateFragment : Fragment() {
                 val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("Kannada Translation", text)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                val msg = if (LanguageManager.isKannada()) "ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ನಕಲಿಸಲಾಗಿದೆ" else "Copied to clipboard"
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(context, "No translation to copy", Toast.LENGTH_SHORT).show()
+                val msg = if (LanguageManager.isKannada()) "ನಕಲಿಸಲು ಅನುವಾದವಿಲ್ಲ" else "No translation to copy"
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
         }
 
+        LanguageManager.addListener(this)
+        applyLanguage()
+
         return view
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        LanguageManager.removeListener(this)
+    }
+
+    override fun onLanguageChanged(language: String) {
+        if (isAdded) {
+            applyLanguage()
+        }
+    }
+
+    private fun applyLanguage() {
+        val isKn = LanguageManager.isKannada()
+
+        tvTranslateTitle.text = if (isKn) "ಕನ್ನಡಕ್ಕೆ ಅನುವಾದಿಸಿ" else "Translate to Kannada"
+        tvSourceLabel.text = if (isKn) "ಮೂಲ ಭಾಷೆ" else "Source Language"
+        tvInputLabel.text = if (isKn) "ಅನುವಾದಿಸಲು ಪಠ್ಯ" else "Text to Translate"
+        tvOutputLabel.text = if (isKn) "ಕನ್ನಡ ಅನುವಾದ" else "Kannada Translation"
+        btnTranslate.text = if (isKn) "ಅನುವಾದಿಸಿ" else "Translate"
+        btnCopyTranslation.text = if (isKn) "ಅನುವಾದ ನಕಲಿಸಿ" else "Copy Translation"
+        etInputText.hint = if (isKn) "ಅನುವಾದಿಸಲು ಪಠ್ಯ ನಮೂದಿಸಿ..." else "Enter text to translate..."
+        etOutputText.hint = if (isKn) "ಅನುವಾದ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ..." else "Translation will appear here..."
     }
 
     // Silently pre-download the Kannada model (target) and the default source language
@@ -111,8 +150,9 @@ class TranslateFragment : Fragment() {
     }
 
     private fun performTranslation(text: String, sourceLangCode: String) {
+        val isKn = LanguageManager.isKannada()
         btnTranslate.isEnabled = false
-        btnTranslate.text = "Downloading model..."
+        btnTranslate.text = if (isKn) "ಮಾಡೆಲ್ ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ..." else "Downloading model..."
         etOutputText.setText("")
 
         val options = TranslatorOptions.Builder()
@@ -126,21 +166,23 @@ class TranslateFragment : Fragment() {
         translator.downloadModelIfNeeded(conditions)
             .addOnSuccessListener {
                 if (!isAdded) { translator.close(); return@addOnSuccessListener }
-                btnTranslate.text = "Translating..."
+                val isKn2 = LanguageManager.isKannada()
+                btnTranslate.text = if (isKn2) "ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ..." else "Translating..."
                 translator.translate(text)
                     .addOnSuccessListener { translatedText ->
                         if (isAdded) {
                             etOutputText.setText(translatedText)
                             btnTranslate.isEnabled = true
-                            btnTranslate.text = "Translate"
+                            btnTranslate.text = if (LanguageManager.isKannada()) "ಅನುವಾದಿಸಿ" else "Translate"
                         }
                         translator.close()
                     }
                     .addOnFailureListener {
                         if (isAdded) {
                             btnTranslate.isEnabled = true
-                            btnTranslate.text = "Translate"
-                            Toast.makeText(context, "Translation failed. Please try again.", Toast.LENGTH_LONG).show()
+                            btnTranslate.text = if (LanguageManager.isKannada()) "ಅನುವಾದಿಸಿ" else "Translate"
+                            val msg = if (LanguageManager.isKannada()) "ಅನುವಾದ ವಿಫಲವಾಗಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ." else "Translation failed. Please try again."
+                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                         }
                         translator.close()
                     }
@@ -148,12 +190,12 @@ class TranslateFragment : Fragment() {
             .addOnFailureListener {
                 if (isAdded) {
                     btnTranslate.isEnabled = true
-                    btnTranslate.text = "Translate"
-                    Toast.makeText(
-                        context,
-                        "Model download failed. Internet is required the first time to download the offline model.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    btnTranslate.text = if (LanguageManager.isKannada()) "ಅನುವಾದಿಸಿ" else "Translate"
+                    val msg = if (LanguageManager.isKannada())
+                        "ಮಾಡೆಲ್ ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ. ಆಫ್‌ಲೈನ್ ಮಾಡೆಲ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಮೊದಲ ಬಾರಿಗೆ ಇಂಟರ್ನೆಟ್ ಅಗತ್ಯ."
+                    else
+                        "Model download failed. Internet is required the first time to download the offline model."
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                 }
                 translator.close()
             }

@@ -37,9 +37,9 @@
         <Key android:codes="-1" android:keyLabel="SHIFT" android:keyWidth="15%p" android:isModifier="true" android:isSticky="true" android:keyEdgeFlags="left"/>
         <Key android:codes="122" android:keyLabel="ಞ" android:popupCharacters="ಙ"/>
         <Key android:codes="120" android:keyLabel="ಷ" android:popupCharacters="ಷ"/>
-        <Key android:codes="99" android:keyLabel="ಚ" android:popupCharacters="ಚ"/>
-        <Key android:codes="118" android:keyLabel="ವ" android:popupCharacters="ವ"/>
-        <Key android:codes="98" android:keyLabel="ಬ" android:popupCharacters="ಬ"/>
+        <Key android:codes="99" android:keyLabel="ಚ" android:popupCharacters="ಛ"/>
+        <Key android:codes="118" android:keyLabel="ವ" android:popupCharacters="ಔ"/>
+        <Key android:codes="98" android:keyLabel="ಬ" android:popupCharacters="ಭ"/>
         <Key android:codes="110" android:keyLabel="ನ" android:popupCharacters="ಣ"/>
         <Key android:codes="109" android:keyLabel="ಮ" android:popupCharacters="ಮ"/>
         <Key android:codes="-5" android:keyLabel="DEL" android:keyWidth="15%p" android:isRepeatable="true" android:keyEdgeFlags="right"/>

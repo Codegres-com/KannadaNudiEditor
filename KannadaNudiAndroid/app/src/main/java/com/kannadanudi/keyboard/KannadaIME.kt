@@ -14,9 +14,11 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -44,6 +46,8 @@ class KannadaIME : InputMethodService(), KeyboardView.OnKeyboardActionListener {
     private lateinit var dictionaryLoader: DictionaryLoader
     private lateinit var candidatesAdapter: CandidatesAdapter
     private lateinit var candidatesView: RecyclerView
+    private var isForcedSwitchMode = false
+    private lateinit var forcedSwitchView: View
     private val mainScope = MainScope()
 
     override fun onCreate() {
@@ -93,6 +97,15 @@ class KannadaIME : InputMethodService(), KeyboardView.OnKeyboardActionListener {
         val rootView = layoutInflater.inflate(R.layout.keyboard_view, null)
         keyboardView = rootView.findViewById(R.id.keyboard)
         candidatesView = rootView.findViewById(R.id.rv_candidates)
+        
+        // Add forced switch overlay if needed
+        forcedSwitchView = layoutInflater.inflate(R.layout.forced_switch_layout, null)
+        forcedSwitchView.findViewById<Button>(R.id.btn_forced_switch).setOnClickListener {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showInputMethodPicker()
+        }
+        forcedSwitchView.visibility = View.GONE
+        (rootView as ViewGroup).addView(forcedSwitchView)
 
         qwertyKeyboard = Keyboard(this, R.xml.qwerty)
         nudiKeyboard = Keyboard(this, R.xml.nudi_layout)
@@ -122,17 +135,29 @@ class KannadaIME : InputMethodService(), KeyboardView.OnKeyboardActionListener {
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         transliterationEngine.clearBuffer()
-
         // Default to Nudi (Direct)
         transliterationEngine.setLayout(KeyboardLayout.Nudi)
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
-        // Ensure keyboard is set when view is started
-        keyboardView.keyboard = nudiKeyboard
-        keyboardView.invalidateAllKeys()
-        updateCandidates()
+
+        // Force switch to another keyboard if in Editor
+        isForcedSwitchMode = info?.packageName == packageName && info?.inputType != 0
+        
+        if (isForcedSwitchMode) {
+            forcedSwitchView.visibility = View.VISIBLE
+            keyboardView.visibility = View.GONE
+            candidatesView.visibility = View.GONE
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showInputMethodPicker()
+        } else {
+            forcedSwitchView.visibility = View.GONE
+            keyboardView.visibility = View.VISIBLE
+            keyboardView.keyboard = nudiKeyboard
+            keyboardView.invalidateAllKeys()
+            updateCandidates()
+        }
     }
 
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {

@@ -45,9 +45,9 @@ class TransliterationEngine {
         // Bottom Row
         "z" to "ಞ", "Z" to "ಙ",
         "x" to "ಷ", "X" to "ಷ",
-        "c" to "ಚ", "C" to "ಚ",
-        "v" to "ವ", "V" to "ವ",
-        "b" to "ಬ", "B" to "ಬ",
+        "c" to "ಚ", "C" to "ಛ",
+        "v" to "ವ", "V" to "ಔ",
+        "b" to "ಬ", "B" to "ಭ",
         "n" to "ನ", "N" to "ಣ",
         "m" to "ಮ", "M" to "ಂ"
     )
@@ -60,7 +60,8 @@ class TransliterationEngine {
         "R" to "ೃ",
         "e" to "ೆ", "E" to "ೇ",
         "Y" to "ೈ", // Shift+y = I -> Matra ai
-        "o" to "ೊ", "O" to "ೋ"
+        "o" to "ೊ", "O" to "ೋ",
+        "V" to "ೌ" // Shift+v = au Matra
         // 'a' has no matra (implicit)
     )
 

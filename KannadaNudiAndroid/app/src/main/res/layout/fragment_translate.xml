@@ -7,6 +7,7 @@
     android:background="#FAFAFA">
 
     <TextView
+        android:id="@+id/tvTranslateTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Translate to Kannada"
@@ -18,6 +19,7 @@
 
     <!-- Source Language Spinner -->
     <TextView
+        android:id="@+id/tvSourceLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Source Language"
@@ -36,6 +38,7 @@
 
     <!-- Input Area -->
     <TextView
+        android:id="@+id/tvInputLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Text to Translate"
@@ -81,6 +84,7 @@
 
     <!-- Output Area -->
     <TextView
+        android:id="@+id/tvOutputLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Kannada Translation"

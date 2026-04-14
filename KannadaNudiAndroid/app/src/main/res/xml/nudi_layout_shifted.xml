@@ -26,7 +26,7 @@
         <Key android:codes="68" android:keyLabel="ಧ"/>
         <Key android:codes="70" android:keyLabel="್"/>
         <Key android:codes="71" android:keyLabel="ಘ"/>
-        <Key android:codes="72" android:keyLabel=":" /> <!-- Visarga -->
+        <Key android:codes="72" android:keyLabel="ಃ" /> <!-- Visarga -->
         <Key android:codes="74" android:keyLabel="ಝ"/>
         <Key android:codes="75" android:keyLabel="ಖ"/>
         <Key android:codes="76" android:keyLabel="ಳ" android:keyEdgeFlags="right"/>
@@ -37,9 +37,9 @@
         <Key android:codes="-1" android:keyLabel="SHIFT" android:keyWidth="15%p" android:isModifier="true" android:isSticky="true" android:keyEdgeFlags="left"/>
         <Key android:codes="90" android:keyLabel="ಙ"/>
         <Key android:codes="88" android:keyLabel="ಷ"/>
-        <Key android:codes="67" android:keyLabel="ಚ"/>
-        <Key android:codes="86" android:keyLabel="ವ"/>
-        <Key android:codes="66" android:keyLabel="ಬ"/>
+        <Key android:codes="67" android:keyLabel="ಛ"/>
+        <Key android:codes="86" android:keyLabel="ಔ"/>
+        <Key android:codes="66" android:keyLabel="ಭ"/>
         <Key android:codes="78" android:keyLabel="ಣ"/>
         <Key android:codes="77" android:keyLabel="ಂ"/>
         <Key android:codes="-5" android:keyLabel="DEL" android:keyWidth="15%p" android:isRepeatable="true" android:keyEdgeFlags="right"/>
