@@ -5,15 +5,7 @@
         android:icon="@drawable/ic_keyboard"
         android:title="Keyboard" />
     <item
-        android:id="@+id/navigation_speech"
-        android:icon="@drawable/ic_mic"
-        android:title="Speech" />
-    <item
-        android:id="@+id/navigation_editor"
-        android:icon="@drawable/ic_editor"
-        android:title="Editor" />
-    <item
-        android:id="@+id/navigation_translate"
-        android:icon="@drawable/ic_translate"
-        android:title="Translate" />
+        android:id="@+id/navigation_type"
+        android:icon="@drawable/ic_keyboard"
+        android:title="Type" />
 </menu>

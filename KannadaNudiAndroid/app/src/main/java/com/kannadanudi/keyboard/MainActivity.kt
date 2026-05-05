@@ -10,9 +10,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 class MainActivity : AppCompatActivity(), LanguageManager.OnLanguageChangeListener {
 
     private lateinit var keyboardFragment: Fragment
-    private lateinit var speechFragment: Fragment
-    private lateinit var editorFragment: Fragment
-    private lateinit var translateFragment: Fragment
+    private lateinit var typeFragment: Fragment
     private lateinit var activeFragment: Fragment
     private lateinit var btnLanguageToggle: TextView
     private lateinit var tvAppTitle: TextView
@@ -37,32 +35,24 @@ class MainActivity : AppCompatActivity(), LanguageManager.OnLanguageChangeListen
 
         if (savedInstanceState == null) {
             keyboardFragment = KeyboardFragment()
-            speechFragment = SpeechFragment()
-            editorFragment = EditorFragment()
-            translateFragment = TranslateFragment()
+            typeFragment = TypeFragment()
 
             // Set KeyboardFragment as default
             activeFragment = keyboardFragment
 
             supportFragmentManager.beginTransaction().apply {
-                add(R.id.fragment_container, speechFragment, "SPEECH").hide(speechFragment)
-                add(R.id.fragment_container, editorFragment, "EDITOR").hide(editorFragment)
-                add(R.id.fragment_container, translateFragment, "TRANSLATE").hide(translateFragment)
+                add(R.id.fragment_container, typeFragment, "TYPE").hide(typeFragment)
                 add(R.id.fragment_container, keyboardFragment, "KEYBOARD")
                 commit()
             }
             bottomNav.selectedItemId = R.id.navigation_keyboard
         } else {
             keyboardFragment = supportFragmentManager.findFragmentByTag("KEYBOARD")!!
-            speechFragment = supportFragmentManager.findFragmentByTag("SPEECH")!!
-            editorFragment = supportFragmentManager.findFragmentByTag("EDITOR")!!
-            translateFragment = supportFragmentManager.findFragmentByTag("TRANSLATE")!!
+            typeFragment = supportFragmentManager.findFragmentByTag("TYPE")!!
 
             // Determine active fragment
             activeFragment = if (!keyboardFragment.isHidden) keyboardFragment
-                             else if (!speechFragment.isHidden) speechFragment
-                             else if (!translateFragment.isHidden) translateFragment
-                             else editorFragment
+                             else typeFragment
         }
 
         bottomNav.setOnItemSelectedListener { item ->
@@ -71,16 +61,8 @@ class MainActivity : AppCompatActivity(), LanguageManager.OnLanguageChangeListen
                     showFragment(keyboardFragment)
                     true
                 }
-                R.id.navigation_speech -> {
-                    showFragment(speechFragment)
-                    true
-                }
-                R.id.navigation_editor -> {
-                    showFragment(editorFragment)
-                    true
-                }
-                R.id.navigation_translate -> {
-                    showFragment(translateFragment)
+                R.id.navigation_type -> {
+                    showFragment(typeFragment)
                     true
                 }
                 else -> false
@@ -110,9 +92,7 @@ class MainActivity : AppCompatActivity(), LanguageManager.OnLanguageChangeListen
         // Update bottom nav labels
         val menu = bottomNav.menu
         menu.findItem(R.id.navigation_keyboard).title = if (isKannada) "ಕೀಬೋರ್ಡ್" else "Keyboard"
-        menu.findItem(R.id.navigation_speech).title = if (isKannada) "ಧ್ವನಿ" else "Speech"
-        menu.findItem(R.id.navigation_editor).title = if (isKannada) "ಸಂಪಾದಕ" else "Editor"
-        menu.findItem(R.id.navigation_translate).title = if (isKannada) "ಅನುವಾದ" else "Translate"
+        menu.findItem(R.id.navigation_type).title = if (isKannada) "ಟೈಪ್" else "Type"
     }
 
     private fun showFragment(fragment: Fragment) {
