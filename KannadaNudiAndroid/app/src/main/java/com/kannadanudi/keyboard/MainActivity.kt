@@ -37,22 +37,22 @@ class MainActivity : AppCompatActivity(), LanguageManager.OnLanguageChangeListen
             keyboardFragment = KeyboardFragment()
             typeFragment = TypeFragment()
 
-            // Set KeyboardFragment as default
-            activeFragment = keyboardFragment
+            // Set TypeFragment as default
+            activeFragment = typeFragment
 
             supportFragmentManager.beginTransaction().apply {
-                add(R.id.fragment_container, typeFragment, "TYPE").hide(typeFragment)
-                add(R.id.fragment_container, keyboardFragment, "KEYBOARD")
+                add(R.id.fragment_container, keyboardFragment, "KEYBOARD").hide(keyboardFragment)
+                add(R.id.fragment_container, typeFragment, "TYPE")
                 commit()
             }
-            bottomNav.selectedItemId = R.id.navigation_keyboard
+            bottomNav.selectedItemId = R.id.navigation_type
         } else {
             keyboardFragment = supportFragmentManager.findFragmentByTag("KEYBOARD")!!
             typeFragment = supportFragmentManager.findFragmentByTag("TYPE")!!
 
             // Determine active fragment
-            activeFragment = if (!keyboardFragment.isHidden) keyboardFragment
-                             else typeFragment
+            activeFragment = if (!typeFragment.isHidden) typeFragment
+                             else keyboardFragment
         }
 
         bottomNav.setOnItemSelectedListener { item ->
