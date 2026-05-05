@@ -61,25 +61,32 @@ class KannadaIME : InputMethodService(), KeyboardView.OnKeyboardActionListener {
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
                 override fun onEndOfSpeech() {
-                    isListening = false
+                    // Do nothing, wait for results
                 }
 
                 override fun onError(error: Int) {
-                    isListening = false
                     val message = when (error) {
                         SpeechRecognizer.ERROR_NO_MATCH -> "No match"
                         SpeechRecognizer.ERROR_NETWORK -> "Network error"
                         SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permission denied"
                         else -> "Error: $error"
                     }
-                    Toast.makeText(this@KannadaIME, message, Toast.LENGTH_SHORT).show()
+                    if (error != SpeechRecognizer.ERROR_CLIENT && isListening) {
+                        startVoiceRecognitionInternal()
+                    } else {
+                        isListening = false
+                        Toast.makeText(this@KannadaIME, message, Toast.LENGTH_SHORT).show()
+                    }
                 }
 
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
                         val text = matches[0]
-                        currentInputConnection.commitText(text, 1)
+                        currentInputConnection.commitText(text + " ", 1)
+                    }
+                    if (isListening) {
+                        startVoiceRecognitionInternal()
                     }
                 }
 
@@ -267,21 +274,27 @@ class KannadaIME : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
     private fun startVoiceRecognition() {
         if (isListening) {
-            speechRecognizer?.stopListening()
             isListening = false
+            speechRecognizer?.stopListening()
+            Toast.makeText(this, "Stopped Listening", Toast.LENGTH_SHORT).show()
         } else {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, "kn-IN")
-                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            }
-            try {
-                speechRecognizer?.startListening(intent)
-                isListening = true
-                Toast.makeText(this, "Listening...", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this, "Voice typing unavailable", Toast.LENGTH_SHORT).show()
-            }
+            isListening = true
+            startVoiceRecognitionInternal()
+            Toast.makeText(this, "Listening Continuously...", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun startVoiceRecognitionInternal() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "kn-IN")
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+        try {
+            speechRecognizer?.startListening(intent)
+        } catch (e: Exception) {
+            isListening = false
+            Toast.makeText(this, "Voice typing unavailable", Toast.LENGTH_SHORT).show()
         }
     }
 

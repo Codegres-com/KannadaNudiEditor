@@ -7,10 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="keyboard_bg">#FFF2F2F2</color>
-    <color name="key_bg">#FFFFFFFF</color>
-    <color name="key_text">#FF333333</color>
-    <color name="key_shadow">#FF999999</color>
+    <color name="keyboard_bg">#ECEFF1</color>
+    <color name="key_bg">#FFFFFF</color>
+    <color name="key_text">#000000</color>
+    <color name="key_shadow">#00000000</color>
     <color name="karnataka_yellow">#FFFF00</color>
     <color name="karnataka_red">#FF0000</color>
 </resources>

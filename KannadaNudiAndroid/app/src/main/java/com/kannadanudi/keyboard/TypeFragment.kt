@@ -1,9 +1,17 @@
 package com.kannadanudi.keyboard
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.inputmethodservice.Keyboard
+import android.inputmethodservice.KeyboardView
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +19,9 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import android.inputmethodservice.Keyboard
-import android.inputmethodservice.KeyboardView
 import kotlin.math.max
 
 class TypeFragment : Fragment(), LanguageManager.OnLanguageChangeListener, KeyboardView.OnKeyboardActionListener {
@@ -31,6 +39,17 @@ class TypeFragment : Fragment(), LanguageManager.OnLanguageChangeListener, Keybo
     private var isCaps = false
 
     private val transliterationEngine = TransliterationEngine()
+    
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isListening = false
+
+    private val requestMicPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            startVoiceRecognition()
+        } else {
+            Toast.makeText(requireContext(), "Microphone permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,6 +88,49 @@ class TypeFragment : Fragment(), LanguageManager.OnLanguageChangeListener, Keybo
         val candidatesView = view.findViewById<View>(R.id.rv_candidates)
         candidatesView?.visibility = View.GONE
 
+        try {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
+            speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {}
+                override fun onBeginningOfSpeech() {}
+                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onBufferReceived(buffer: ByteArray?) {}
+                override fun onEndOfSpeech() {
+                    // Do nothing, wait for results
+                }
+
+                override fun onError(error: Int) {
+                    val message = when (error) {
+                        SpeechRecognizer.ERROR_NO_MATCH -> "No match"
+                        SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Permission denied"
+                        else -> "Error: $error"
+                    }
+                    if (error != SpeechRecognizer.ERROR_CLIENT && isListening) {
+                        startVoiceRecognitionInternal()
+                    } else {
+                        isListening = false
+                    }
+                }
+
+                override fun onResults(results: Bundle?) {
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    if (!matches.isNullOrEmpty()) {
+                        val text = matches[0]
+                        etTypeArea.editableText.insert(etTypeArea.selectionStart, text + " ")
+                    }
+                    if (isListening) {
+                        startVoiceRecognitionInternal()
+                    }
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) {}
+                override fun onEvent(eventType: Int, params: Bundle?) {}
+            })
+        } catch (e: Exception) {
+            speechRecognizer = null
+        }
+
         btnCopy.setOnClickListener {
             val textToCopy = etTypeArea.text.toString()
             if (textToCopy.isNotEmpty()) {
@@ -88,6 +150,7 @@ class TypeFragment : Fragment(), LanguageManager.OnLanguageChangeListener, Keybo
     override fun onDestroyView() {
         super.onDestroyView()
         LanguageManager.removeListener(this)
+        speechRecognizer?.destroy()
     }
 
     override fun onLanguageChanged(language: String) {
@@ -134,7 +197,8 @@ class TypeFragment : Fragment(), LanguageManager.OnLanguageChangeListener, Keybo
                 etTypeArea.editableText.insert(cursorPosition, "\n")
                 transliterationEngine.clearBuffer()
             }
-            -102 -> { // MIC Code - ignoring for preview
+            -102 -> { // MIC Code
+                checkAudioPermissionAndListen()
             }
             -200 -> { // Switch to Nudi
                 isCaps = false
@@ -180,4 +244,38 @@ class TypeFragment : Fragment(), LanguageManager.OnLanguageChangeListener, Keybo
     override fun swipeRight() {}
     override fun swipeDown() {}
     override fun swipeUp() {}
+
+    private fun checkAudioPermissionAndListen() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            startVoiceRecognition()
+        } else {
+            requestMicPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    private fun startVoiceRecognition() {
+        if (isListening) {
+            isListening = false
+            speechRecognizer?.stopListening()
+            Toast.makeText(requireContext(), "Stopped Listening", Toast.LENGTH_SHORT).show()
+        } else {
+            isListening = true
+            startVoiceRecognitionInternal()
+            Toast.makeText(requireContext(), "Listening Continuously...", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun startVoiceRecognitionInternal() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "kn-IN")
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+        try {
+            speechRecognizer?.startListening(intent)
+        } catch (e: Exception) {
+            isListening = false
+            Toast.makeText(requireContext(), "Voice typing unavailable", Toast.LENGTH_SHORT).show()
+        }
+    }
 }

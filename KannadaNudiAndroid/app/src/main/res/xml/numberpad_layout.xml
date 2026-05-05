@@ -51,16 +51,14 @@
     <!-- Keys: < > Sw , _ Sp | ZW ZWN . Ent -->
     <!-- 8 small keys * 8% = 64%. Space 15%. Enter 11%. Switch 10%. Total 100%. -->
     <Row android:rowEdgeFlags="bottom">
-        <Key android:codes="60" android:keyLabel="&lt;" android:keyWidth="8%p" android:keyEdgeFlags="left"/>
-        <Key android:codes="62" android:keyLabel="&gt;" android:keyWidth="8%p"/>
+        <Key android:codes="60" android:keyLabel="&lt;" android:keyWidth="10%p" android:keyEdgeFlags="left"/>
+        <Key android:codes="62" android:keyLabel="&gt;" android:keyWidth="10%p"/>
         <Key android:codes="-200" android:keyLabel="ಕ" android:keyWidth="10%p"/> <!-- Back to Nudi -->
-        <Key android:codes="44" android:keyLabel="," android:keyWidth="8%p"/>
-        <Key android:codes="95" android:keyLabel="_" android:keyWidth="8%p"/>
-        <Key android:codes="32" android:keyLabel="ನುಡಿ ಕೀಲಿಮಣೆ" android:keyWidth="18%p"/>
-        <Key android:codes="124" android:keyLabel="|" android:keyWidth="8%p"/>
-        <Key android:codes="8205" android:keyLabel="ZWJ" android:keyWidth="8%p"/>
-        <Key android:codes="8204" android:keyLabel="ZWNJ" android:keyWidth="8%p"/>
-        <Key android:codes="46" android:keyLabel="." android:keyWidth="8%p"/>
-        <Key android:codes="10" android:keyLabel="⏎" android:keyWidth="8%p" android:keyEdgeFlags="right"/>
+        <Key android:codes="44" android:keyLabel="," android:keyWidth="10%p"/>
+        <Key android:codes="95" android:keyLabel="_" android:keyWidth="10%p"/>
+        <Key android:codes="32" android:keyLabel="ನುಡಿ ಕೀಲಿಮಣೆ" android:keyWidth="20%p"/>
+        <Key android:codes="124" android:keyLabel="|" android:keyWidth="10%p"/>
+        <Key android:codes="46" android:keyLabel="." android:keyWidth="10%p"/>
+        <Key android:codes="10" android:keyLabel="⏎" android:keyWidth="10%p" android:keyEdgeFlags="right"/>
     </Row>
 </Keyboard>

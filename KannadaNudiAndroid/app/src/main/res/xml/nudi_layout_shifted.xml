@@ -21,7 +21,7 @@
 
     <!-- Row 2: Shifted A-L (ಆ ಶ ಧ ್ ಘ ಃ ಝ ಖ ಳ) -->
     <Row>
-        <Key android:codes="65" android:keyLabel="ಆ" android:keyEdgeFlags="left"/>
+        <Key android:codes="65" android:keyLabel="ಆ" android:horizontalGap="5%p" android:keyEdgeFlags="left"/>
         <Key android:codes="83" android:keyLabel="ಶ"/>
         <Key android:codes="68" android:keyLabel="ಧ"/>
         <Key android:codes="70" android:keyLabel="್"/>

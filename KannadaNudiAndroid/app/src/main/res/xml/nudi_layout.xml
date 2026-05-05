@@ -21,7 +21,7 @@
 
     <!-- Row 2: A-L (Normal: ಅ ಸ ದ ್ ಗ ಹ ಜ ಕ ಲ) -->
     <Row>
-        <Key android:codes="97" android:keyLabel="ಅ" android:popupCharacters="ಆ" android:keyEdgeFlags="left"/>
+        <Key android:codes="97" android:keyLabel="ಅ" android:popupCharacters="ಆ" android:horizontalGap="5%p" android:keyEdgeFlags="left"/>
         <Key android:codes="115" android:keyLabel="ಸ" android:popupCharacters="ಶ"/>
         <Key android:codes="100" android:keyLabel="ದ" android:popupCharacters="ಧ"/>
         <Key android:codes="102" android:keyLabel="್" android:popupCharacters="್"/>

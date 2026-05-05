@@ -64,13 +64,17 @@
         android:paddingEnd="4dp"
     />
 
-    <android.inputmethodservice.KeyboardView
+    <com.kannadanudi.keyboard.CustomKeyboardView
         android:id="@+id/keyboard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/keyboard_bg"
+        android:background="#ECEFF1"
         android:keyBackground="@drawable/key_background"
-        android:keyTextColor="@color/key_text"
+        android:keyTextColor="#000000"
+        android:keyTextSize="24sp"
+        android:labelTextSize="20sp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:keyPreviewLayout="@null"
     />
 </LinearLayout>
