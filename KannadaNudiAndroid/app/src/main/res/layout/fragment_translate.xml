@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Karnataka Split Background (Yellow Top, Red Bottom) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.2"
+            android:background="#FFCD00" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.0"
+            android:background="#BB001E" />
+
+    </LinearLayout>
+
+    <!-- Main Content Overlay -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:paddingTop="56dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:gravity="center_horizontal">
+
+            <!-- Translation Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="#FAF6E8">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:gravity="center_horizontal">
+
+                    <!-- Language Selector Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="#12735C00"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:layout_marginBottom="12dp">
+
+                        <!-- Left Language Selector Container -->
+                        <LinearLayout
+                            android:id="@+id/btnLeftLangSelector"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:background="?android:attr/selectableItemBackground">
+
+                            <TextView
+                                android:id="@+id/tvLeftLangLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="KANNADA"
+                                android:textColor="#735C00"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.05" />
+
+                            <ImageView
+                                android:id="@+id/ivLeftDropdownArrow"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:src="@android:drawable/arrow_down_float"
+                                android:tint="#735C00"
+                                android:layout_marginStart="4dp"
+                                android:visibility="gone" />
+                        </LinearLayout>
+
+                        <!-- Swap Languages Button -->
+                        <ImageButton
+                            android:id="@+id/btnSwapLanguages"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_swap"
+                            android:tint="#735C00"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Swap languages" />
+
+                        <!-- Right Language Selector Container -->
+                        <LinearLayout
+                            android:id="@+id/btnRightLangSelector"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?android:attr/selectableItemBackground">
+
+                            <TextView
+                                android:id="@+id/tvRightLangLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="ENGLISH"
+                                android:textColor="#735C00"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.05" />
+
+                            <ImageView
+                                android:id="@+id/ivRightDropdownArrow"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:src="@android:drawable/arrow_down_float"
+                                android:tint="#735C00"
+                                android:layout_marginStart="4dp"
+                                android:visibility="visible" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Wave Visualizer (Animates when listening) -->
+                    <LinearLayout
+                        android:id="@+id/wave_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginBottom="4dp"
+                        android:alpha="0.8">
+
+                        <View
+                            android:id="@+id/wave_bar_1"
+                            android:layout_width="4dp"
+                            android:layout_height="10dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_2"
+                            android:layout_width="4dp"
+                            android:layout_height="10dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_3"
+                            android:layout_width="4dp"
+                            android:layout_height="10dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_4"
+                            android:layout_width="4dp"
+                            android:layout_height="10dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_5"
+                            android:layout_width="4dp"
+                            android:layout_height="10dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+                    </LinearLayout>
+
+                    <!-- Status Label -->
+                    <TextView
+                        android:id="@+id/tvStatusLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TAP MICROPHONE TO TRANSLATE"
+                        android:textSize="10sp"
+                        android:textColor="#574500"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Editable Source Text Area (Pasteable) -->
+                    <EditText
+                        android:id="@+id/etSourceArea"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="90dp"
+                        android:background="@null"
+                        android:gravity="top|center_horizontal"
+                        android:hint="ಇಲ್ಲಿ ಬರೆಯಿರಿ ಅಥವಾ ಮಾತನಾಡಿ..."
+                        android:textColor="#574500"
+                        android:textColorHint="#99735C00"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:inputType="textMultiLine"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Source Actions Container -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginBottom="12dp">
+
+                        <!-- Translate Button -->
+                        <LinearLayout
+                            android:id="@+id/btnTranslate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:background="@drawable/shape_round_pill"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:elevation="2dp"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_translate"
+                                android:tint="#735C00" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="TRANSLATE"
+                                android:textSize="11sp"
+                                android:textColor="#735C00"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.05"
+                                android:layout_marginStart="6dp" />
+                        </LinearLayout>
+
+                        <!-- Speak Source Button -->
+                        <FrameLayout
+                            android:id="@+id/btnSpeakSource"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/shape_circle"
+                            android:elevation="2dp"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_volume_up"
+                                android:tint="#735C00" />
+                        </FrameLayout>
+
+                        <!-- Copy Source Button -->
+                        <FrameLayout
+                            android:id="@+id/btnCopySource"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/shape_circle"
+                            android:elevation="2dp"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_copy"
+                                android:tint="#735C00" />
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#20735C00"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Translation Output Container -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal">
+
+                        <!-- Translation Output TextView -->
+                        <TextView
+                            android:id="@+id/tvTargetArea"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minLines="1"
+                            android:textColor="#2D3133"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:gravity="center"
+                            android:hint="ಅನುವಾದವು ಇಲ್ಲಿ ಗೋಚರಿಸುತ್ತದೆ..."
+                            android:textColorHint="#502D3133" />
+
+                        <!-- Target Actions Container -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:layout_marginTop="12dp">
+
+                            <!-- Speak Target Button -->
+                            <FrameLayout
+                                android:id="@+id/btnSpeakTarget"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/shape_circle"
+                                android:elevation="2dp"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_volume_up"
+                                    android:tint="#735C00" />
+                            </FrameLayout>
+
+                            <!-- Copy Target Button -->
+                            <FrameLayout
+                                android:id="@+id/btnCopyTarget"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_marginStart="16dp"
+                                android:background="@drawable/shape_circle"
+                                android:elevation="2dp"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_copy"
+                                    android:tint="#735C00" />
+                            </FrameLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Microphone Area (Bottom Red Half) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="30dp">
+
+                <!-- Prominent Mic Circle -->
+                <FrameLayout
+                    android:id="@+id/btnMicCircle"
+                    android:layout_width="130dp"
+                    android:layout_height="130dp"
+                    android:background="@drawable/mic_background_circle"
+                    android:elevation="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/btnMicIcon"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_mic"
+                        android:tint="#BB001E" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvMicInstruction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ಟ್ಯಾಪ್ ಮಾಡಿ ಮತ್ತು ಮಾತನಾಡಿ"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/tvMicSubInstruction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TAP AND SPEAK"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</RelativeLayout>

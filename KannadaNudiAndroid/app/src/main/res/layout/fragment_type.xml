@@ -1,71 +1,276 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/white">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tvTypeTitle"
+    <!-- Karnataka Split Background (Yellow Top, Red Bottom) -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Keyboard Preview"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:gravity="center"
-        android:layout_marginTop="8dp"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvTypeSubtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Test the keyboard layout and transliteration here."
-        android:textSize="14sp"
-        android:textColor="#666666"
-        android:gravity="center"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="16dp"/>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@drawable/edit_text_background">
-        
-        <EditText
-            android:id="@+id/etTypeArea"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@null"
-            android:gravity="top|start"
-            android:hint="Type something..."
-            android:padding="16dp"
-            android:inputType="textMultiLine|textNoSuggestions"
-            android:textSize="18sp"
-            android:textColor="@color/black" />
-            
-        <ImageButton
-            android:id="@+id/btnCopy"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_margin="8dp"
-            android:src="@drawable/ic_copy"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Copy Text" />
-            
-    </RelativeLayout>
+            android:layout_height="0dp"
+            android:layout_weight="1.2"
+            android:background="#FFCD00" />
 
-    <View
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.0"
+            android:background="#BB001E" />
+
+    </LinearLayout>
+
+    <!-- Main Content Overlay -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#DDDDDD"
-        android:layout_marginTop="8dp" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/keyboard_container"
+        android:fillViewport="true"
+        android:paddingTop="56dp"
+        android:scrollbars="none">
 
-    <!-- Keyboard container -->
-    <include layout="@layout/keyboard_view" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:gravity="center_horizontal">
 
-</LinearLayout>
+            <!-- Transcription Area Card (Top Yellow Half Context) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="#FAF6E8">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp"
+                    android:gravity="center_horizontal">
+
+                    <!-- Wave Visualizer (Animates when listening) -->
+                    <LinearLayout
+                        android:id="@+id/wave_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginBottom="8dp"
+                        android:alpha="0.8">
+
+                        <View
+                            android:id="@+id/wave_bar_1"
+                            android:layout_width="4dp"
+                            android:layout_height="12dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_2"
+                            android:layout_width="4dp"
+                            android:layout_height="12dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_3"
+                            android:layout_width="4dp"
+                            android:layout_height="12dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_4"
+                            android:layout_width="4dp"
+                            android:layout_height="12dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+
+                        <View
+                            android:id="@+id/wave_bar_5"
+                            android:layout_width="4dp"
+                            android:layout_height="12dp"
+                            android:layout_margin="2dp"
+                            android:background="#BB001E" />
+                    </LinearLayout>
+
+                    <!-- Status Label -->
+                    <TextView
+                        android:id="@+id/tvStatusLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TAP MICROPHONE TO SPEAK"
+                        android:textSize="11sp"
+                        android:textColor="#574500"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.15"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Editable Kannada Text Display -->
+                    <EditText
+                        android:id="@+id/etTypeArea"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="140dp"
+                        android:background="@null"
+                        android:gravity="top|center_horizontal"
+                        android:hint="ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ..."
+                        android:textColor="#574500"
+                        android:textColorHint="#99735C00"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:layout_marginBottom="24dp" />
+
+                    <!-- Action Buttons Row -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginBottom="8dp">
+
+                        <!-- Speak / Volume Button -->
+                        <FrameLayout
+                            android:id="@+id/btnSpeak"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="@drawable/shape_circle"
+                            android:elevation="2dp"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_volume_up"
+                                android:tint="#735C00" />
+                        </FrameLayout>
+
+                        <!-- Copy Button -->
+                        <FrameLayout
+                            android:id="@+id/btnCopy"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginStart="20dp"
+                            android:background="@drawable/shape_circle"
+                            android:elevation="2dp"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_copy"
+                                android:tint="#735C00" />
+                        </FrameLayout>
+
+                        <!-- Keyboard Toggle Button -->
+                        <FrameLayout
+                            android:id="@+id/btnToggleKeyboard"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_marginStart="20dp"
+                            android:background="@drawable/shape_circle"
+                            android:elevation="2dp"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_keyboard"
+                                android:tint="#735C00" />
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Microphone Area (Bottom Red Half Context) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="40dp">
+
+                <!-- Prominent Mic Circle Button -->
+                <FrameLayout
+                    android:id="@+id/btnMicCircle"
+                    android:layout_width="130dp"
+                    android:layout_height="130dp"
+                    android:background="@drawable/mic_background_circle"
+                    android:elevation="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/btnMicIcon"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_mic"
+                        android:tint="#BB001E" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvMicInstruction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ಟ್ಯಾಪ್ ಮಾಡಿ ಮತ್ತು ಮಾತನಾಡಿ"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:id="@+id/tvMicSubInstruction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TAP AND SPEAK"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Optional Keyboard Container Overlay at the bottom -->
+    <LinearLayout
+        android:id="@+id/keyboard_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:background="#ECEFF1">
+
+        <include layout="@layout/keyboard_view" />
+
+    </LinearLayout>
+
+</RelativeLayout>

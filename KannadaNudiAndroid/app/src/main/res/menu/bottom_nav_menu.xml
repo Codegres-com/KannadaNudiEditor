@@ -8,4 +8,8 @@
         android:id="@+id/navigation_type"
         android:icon="@drawable/ic_keyboard"
         android:title="Type" />
+    <item
+        android:id="@+id/navigation_translate"
+        android:icon="@drawable/ic_translate"
+        android:title="Translate" />
 </menu>

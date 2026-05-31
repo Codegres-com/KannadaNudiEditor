@@ -1,140 +1,193 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#FAFAFA">
+    android:layout_height="match_parent">
 
+    <!-- Karnataka Split Background (Yellow Top, Red Bottom) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <!-- Welcome Title -->
-        <TextView
-            android:id="@+id/tvWelcome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Welcome to Kannada Nudi Keyboard"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#1A1A2E"
-            android:gravity="center"
-            android:layout_marginBottom="16dp"/>
-
-        <!-- Keyboard Preview Screenshot -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:elevation="4dp">
-
-            <ImageView
-                android:id="@+id/imgKeyboardPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/nudi_keyboard_preview"
-                android:contentDescription="Kannada Nudi Keyboard Preview" />
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- Introduction Message -->
-        <TextView
-            android:id="@+id/tvIntroMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="In Order to get a Kannada Keyboard across all Apps,"
-            android:textSize="15sp"
-            android:textColor="#424242"
-            android:gravity="center"
-            android:layout_marginBottom="4dp"/>
-
-        <TextView
-            android:id="@+id/tvIntroAction"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Switch Input method here to Kannada Nudi Keyboard"
-            android:textSize="15sp"
-            android:textColor="#6200EE"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- Divider -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E0E0E0"
-            android:layout_marginBottom="24dp"/>
+            android:layout_height="0dp"
+            android:layout_weight="1.2"
+            android:background="#FFCD00" />
 
-        <!-- Setup Instructions -->
-        <TextView
-            android:id="@+id/tvInstructions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="To use this keyboard, you must enable it in System Settings."
-            android:textSize="16sp"
-            android:textColor="#212121"
-            android:gravity="center"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView
-            android:id="@+id/tvSteps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="1. Click the button below.\n2. Toggle 'Kannada Nudi Keyboard' to ON.\n3. Open any app and switch keyboard."
-            android:textSize="14sp"
-            android:textColor="#616161"
-            android:layout_marginBottom="24dp"/>
-
-        <Button
-            android:id="@+id/btnEnable"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="#6200EE"
-            android:textColor="@android:color/white"
-            android:text="Enable Keyboard in Settings" />
-
-        <!-- Microphone Permission Section -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E0E0E0"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="24dp"/>
-
-        <TextView
-            android:id="@+id/tvMicTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Microphone Permission"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#212121"
-            android:layout_marginBottom="12dp"/>
-
-        <TextView
-            android:id="@+id/tvMicStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Checking microphone permission..."
-            android:textSize="14sp"
-            android:textColor="#616161"
-            android:gravity="center"
-            android:layout_marginBottom="16dp"/>
-
-        <Button
-            android:id="@+id/btnGrantMic"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="#6200EE"
-            android:textColor="@android:color/white"
-            android:text="Grant Microphone Permission"
-            android:visibility="gone"/>
+            android:layout_height="0dp"
+            android:layout_weight="1.0"
+            android:background="#BB001E" />
 
     </LinearLayout>
 
-</ScrollView>
+    <!-- Scrollable main content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:paddingTop="56dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:gravity="center_horizontal">
+
+            <!-- Card Setup Container -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="40dp"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="#FAF6E8">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp"
+                    android:gravity="center_horizontal">
+
+                    <!-- Welcome Title -->
+                    <TextView
+                        android:id="@+id/tvWelcome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Welcome to Nudi Keyboard"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="#735C00"
+                        android:gravity="center"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Keyboard Preview Card -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <ImageView
+                            android:id="@+id/imgKeyboardPreview"
+                            android:layout_width="match_parent"
+                            android:layout_height="120dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/nudi_keyboard_preview"
+                            android:contentDescription="Kannada Nudi Keyboard Preview" />
+
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Setup Instruction texts -->
+                    <TextView
+                        android:id="@+id/tvIntroMessage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="In Order to get a Kannada Keyboard across all Apps,"
+                        android:textSize="14sp"
+                        android:textColor="#574500"
+                        android:gravity="center"
+                        android:layout_marginBottom="2dp"/>
+
+                    <TextView
+                        android:id="@+id/tvIntroAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Switch Input method to Kannada Nudi"
+                        android:textSize="14sp"
+                        android:textColor="#BB001E"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Step details -->
+                    <TextView
+                        android:id="@+id/tvInstructions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable in System Settings to start typing:"
+                        android:textSize="14sp"
+                        android:textColor="#574500"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:id="@+id/tvSteps"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1. Click the button below.\n2. Toggle 'Kannada Nudi Keyboard' to ON.\n3. Open any app and switch keyboard."
+                        android:textSize="12sp"
+                        android:textColor="#735C00"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Enable Button styled as red pill -->
+                    <Button
+                        android:id="@+id/btnEnable"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:backgroundTint="#BB001E"
+                        android:textColor="@android:color/white"
+                        android:text="Enable Keyboard in Settings"
+                        android:textStyle="bold"
+                        app:cornerRadius="100dp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#20735C00"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Microphone Permission Section -->
+                    <TextView
+                        android:id="@+id/tvMicTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Microphone Permission"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#735C00"
+                        android:layout_marginBottom="6dp"/>
+
+                    <TextView
+                        android:id="@+id/tvMicStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Checking microphone permission..."
+                        android:textSize="12sp"
+                        android:textColor="#574500"
+                        android:gravity="center"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Grant Button styled as white/gold pill -->
+                    <Button
+                        android:id="@+id/btnGrantMic"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:backgroundTint="#735C00"
+                        android:textColor="@android:color/white"
+                        android:text="Grant Microphone Permission"
+                        android:textStyle="bold"
+                        app:cornerRadius="100dp"
+                        android:visibility="gone"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</RelativeLayout>

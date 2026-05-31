@@ -1,28 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <!-- Top Bar with Language Switch -->
+    <!-- Fragment container occupies full screen above the bottom nav -->
     <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottom_navigation" />
+
+    <!-- Top Bar with Menu, Title, and Language Switch, overlays fragment_container -->
+    <FrameLayout
+        android:id="@+id/top_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
         android:background="#6200EE"
-        android:paddingStart="16dp"
+        android:paddingStart="12dp"
         android:paddingEnd="12dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
+        android:elevation="4dp"
+        android:translationZ="4dp">
+
+        <ImageButton
+            android:id="@+id/btnMenu"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical|start"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_menu"
+            android:tint="#FFFFFF"
+            android:visibility="gone"
+            android:contentDescription="Menu" />
 
         <TextView
             android:id="@+id/tvAppTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|start"
-            android:text="ಕನ್ನಡ ನುಡಿ"
+            android:layout_gravity="center"
+            android:text="Kannada Voice"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <TextView
@@ -30,31 +48,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|end"
-            android:background="@android:color/white"
+            android:background="@drawable/shape_round_pill"
             android:text="English"
             android:textColor="#6200EE"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textStyle="bold"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
+            android:elevation="2dp"
             android:clickable="true"
             android:focusable="true" />
 
     </FrameLayout>
 
-    <FrameLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
+    <!-- Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         app:menu="@menu/bottom_nav_menu"
         android:background="?android:attr/windowBackground"/>
 
-</LinearLayout>
+</RelativeLayout>
