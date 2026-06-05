@@ -4,6 +4,7 @@
 @inject TransliterationService TransliterationService
 @inject FileConversionService FileConversionService
 @inject SpeechService SpeechService
+@inject TranslationService TranslationService
 @inject IJSRuntime JSRuntime
 @implements IDisposable
 
@@ -48,12 +49,15 @@
             <button class="btn btn-outline-dark" @onclick="Redo" title="Redo"><span class="bi bi-arrow-clockwise"></span></button>
         </div>
         <div class="btn-group ms-2" role="group">
-            <button class="btn btn-outline-dark" @onclick="CopyText" title="Copy"><span class="bi bi-clipboard"></span></button>
-            <button class="btn btn-outline-dark" @onclick="PasteText" title="Paste"><span class="bi bi-clipboard-check"></span></button>
+            <button id="btn-copy" class="btn btn-outline-dark" title="Copy"><span class="bi bi-clipboard"></span></button>
+            <button id="btn-paste" class="btn btn-outline-dark" title="Paste"><span class="bi bi-clipboard-check"></span></button>
         </div>
         <div class="btn-group ms-2" role="group">
             <button class="btn btn-outline-dark" @onclick="InsertTable" title="Insert Table (3x3)" style="display:none"><span class="bi bi-table"></span></button>
             <button class="btn btn-outline-dark" @onclick="ToggleHighlight" title="Highlight Text"><span class="bi bi-highlighter"></span></button>
+        </div>
+        <div class="btn-group ms-2" role="group">
+            <button class="btn btn-outline-dark" @onclick="OpenTranslateModal" title="Translate Text"><span class="bi bi-translate"></span> Translate</button>
         </div>
     </div>
 
@@ -140,6 +144,114 @@
     </div>
 }
 
+@if (showTranslateModal)
+{
+    <div class="modal-backdrop show"></div>
+    <div class="modal show" style="display:block;" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title m-0 fw-semibold d-flex align-items-center">
+                        <span class="bi bi-translate me-2"></span> Translate Text
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseTranslateModal" disabled="@isTranslating"></button>
+                </div>
+                <div class="modal-body p-4">
+                    @if (!isTranslating)
+                    {
+                        <div class="row g-3 mb-4 align-items-center">
+                            <div class="col-5">
+                                <label class="form-label text-muted small mb-1">Source Language</label>
+                                <select class="form-select border-2" value="@sourceLang" @onchange="OnSourceLangChange">
+                                    <option value="kn">Kannada</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            <div class="col-2 text-center mt-4">
+                                <button class="btn btn-outline-secondary btn-sm rounded-circle px-2" @onclick="SwapTranslateLanguages" type="button" title="Swap languages">
+                                    <span class="bi bi-arrow-left-right"></span>
+                                </button>
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label text-muted small mb-1">Target Language</label>
+                                <select class="form-select border-2" value="@targetLang" @onchange="OnTargetLangChange">
+                                    @foreach (var lang in GetTargetLanguages())
+                                    {
+                                        <option value="@lang.Key">@lang.Value</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        @if (hasSelection)
+                        {
+                            <div class="mb-4">
+                                <label class="form-label text-muted small mb-2">Translation Scope</label>
+                                <div class="form-check p-3 border rounded-3 bg-light-subtle mb-2 hover-shadow" style="cursor: pointer;" @onclick='() => translateScope = "selection"'>
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="translateScope" id="scopeSelection" checked="@(translateScope == "selection")" @onchange='() => translateScope = "selection"'>
+                                    <label class="form-check-label fw-medium" for="scopeSelection">
+                                        Translate Selected Text
+                                        <div class="text-muted small fw-normal mt-1">Translate only the highlighted section of your document.</div>
+                                    </label>
+                                </div>
+                                <div class="form-check p-3 border rounded-3 bg-light-subtle hover-shadow" style="cursor: pointer;" @onclick='() => translateScope = "entire"'>
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="translateScope" id="scopeEntire" checked="@(translateScope == "entire")" @onchange='() => translateScope = "entire"'>
+                                    <label class="form-check-label fw-medium" for="scopeEntire">
+                                        Translate Entire Document
+                                        <div class="text-muted small fw-normal mt-1">Translate all text in the editor.</div>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info py-2 px-3 small border-0 bg-info-subtle text-info-emphasis rounded-3 mb-4">
+                                <span class="bi bi-info-circle me-1"></span> Note: Since no text is selected, the entire document will be translated.
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(translationError))
+                        {
+                            <div class="alert alert-danger py-2 px-3 small border-0 bg-danger-subtle text-danger-emphasis rounded-3 mb-4">
+                                <span class="bi bi-exclamation-triangle-fill me-1"></span> @translationError
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Translating View -->
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                                <span class="visually-hidden">Translating...</span>
+                            </div>
+                            <h6 class="fw-semibold text-dark mb-1">Translating Document...</h6>
+                            <p class="text-muted small mb-3">@translationStatus</p>
+                            
+                            <div class="progress rounded-pill mb-2" style="height: 12px; background-color: #f1f3f5;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success rounded-pill" role="progressbar" style="width: @(translationProgress)%" aria-valuenow="@translationProgress" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="text-end text-muted small fw-semibold">@((int)translationProgress)%</div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer bg-light border-0 px-4 py-3 d-flex justify-content-between">
+                    @if (!isTranslating)
+                    {
+                        <button type="button" class="btn btn-secondary px-4 fw-medium" @onclick="CloseTranslateModal" style="border-radius: 8px;">Cancel</button>
+                        <button type="button" class="btn btn-primary px-4 fw-medium" @onclick="StartTranslation" style="border-radius: 8px;">Translate</button>
+                    }
+                    else
+                    {
+                        <div class="w-100 text-center">
+                            <button type="button" class="btn btn-danger px-4 fw-medium" @onclick="CancelTranslation" style="border-radius: 8px;">Cancel Translation</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     .toolbar-container {
         display: flex;
@@ -190,6 +302,14 @@
     }
     .modal-backdrop {
         background-color: rgba(0,0,0,0.5);
+    }
+    .hover-shadow:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: var(--bs-primary) !important;
+        transition: all 0.2s ease-in-out;
+    }
+    .hover-shadow {
+        transition: all 0.2s ease-in-out;
     }
 </style>
 
@@ -511,12 +631,181 @@
         return sb.ToString();
     }
 
+    // Translation Logic State
+    private bool showTranslateModal = false;
+    private bool isTranslating = false;
+    private string sourceLang = "kn";
+    private string targetLang = "en";
+    private string translateScope = "entire";
+    private bool hasSelection = false;
+    private string selectionText = "";
+    private double translationProgress = 0;
+    private string translationStatus = "";
+    private string translationError = "";
+    private CancellationTokenSource? translateCts;
+
+    private async Task OpenTranslateModal()
+    {
+        selectionText = await JSRuntime.InvokeAsync<string>("quillInterop.getSelectedText");
+        hasSelection = !string.IsNullOrWhiteSpace(selectionText);
+        translateScope = hasSelection ? "selection" : "entire";
+        translationError = "";
+        translationProgress = 0;
+        translationStatus = "";
+        showTranslateModal = false;
+        isTranslating = false;
+
+        // Force modal layout refresh
+        showTranslateModal = true;
+    }
+
+    private void CloseTranslateModal()
+    {
+        showTranslateModal = false;
+        isTranslating = false;
+        if (translateCts != null)
+        {
+            translateCts.Cancel();
+            translateCts.Dispose();
+            translateCts = null;
+        }
+    }
+
+    private void SwapTranslateLanguages()
+    {
+        if (targetLang == "kn" || targetLang == "en")
+        {
+            var temp = sourceLang;
+            sourceLang = targetLang;
+            targetLang = temp;
+        }
+    }
+
+    private void OnSourceLangChange(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            sourceLang = e.Value.ToString() ?? "kn";
+            if (targetLang == sourceLang)
+            {
+                targetLang = sourceLang == "kn" ? "en" : "kn";
+            }
+        }
+    }
+
+    private void OnTargetLangChange(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            targetLang = e.Value.ToString() ?? "en";
+            if (targetLang == sourceLang)
+            {
+                sourceLang = targetLang == "en" ? "kn" : "en";
+            }
+        }
+    }
+
+    private List<KeyValuePair<string, string>> GetTargetLanguages()
+    {
+        var list = new List<KeyValuePair<string, string>>
+        {
+            new KeyValuePair<string, string>("kn", "Kannada"),
+            new KeyValuePair<string, string>("en", "English")
+        };
+
+        var sortedOthers = TranslationService.SupportedLanguages
+            .Where(x => x.Key != "kn" && x.Key != "en")
+            .OrderBy(x => x.Value)
+            .ToList();
+
+        list.AddRange(sortedOthers);
+        return list;
+    }
+
+    private async Task StartTranslation()
+    {
+        isTranslating = true;
+        translationProgress = 0;
+        translationStatus = "Preparing text...";
+        translationError = "";
+        translateCts = new CancellationTokenSource();
+
+        try
+        {
+            string textToTranslate = "";
+            if (translateScope == "selection" && hasSelection)
+            {
+                textToTranslate = selectionText;
+            }
+            else
+            {
+                textToTranslate = await JSRuntime.InvokeAsync<string>("quillInterop.getText");
+            }
+
+            if (string.IsNullOrWhiteSpace(textToTranslate))
+            {
+                translationError = "No text found to translate.";
+                isTranslating = false;
+                return;
+            }
+
+            var translatedText = await TranslationService.TranslateTextAsync(
+                textToTranslate,
+                sourceLang,
+                targetLang,
+                progress =>
+                {
+                    translationProgress = progress;
+                    translationStatus = $"Translating... {progress:0}% complete";
+                    StateHasChanged();
+                },
+                translateCts.Token
+            );
+
+            if (translateScope == "selection" && hasSelection)
+            {
+                await JSRuntime.InvokeVoidAsync("quillInterop.replaceSelection", translatedText);
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("quillInterop.setText", translatedText);
+            }
+
+            CloseTranslateModal();
+        }
+        catch (OperationCanceledException)
+        {
+            translationStatus = "Translation cancelled.";
+            translationError = "The translation process was cancelled.";
+        }
+        catch (Exception ex)
+        {
+            translationError = $"Translation failed: {ex.Message}";
+        }
+        finally
+        {
+            isTranslating = false;
+            translateCts?.Dispose();
+            translateCts = null;
+        }
+    }
+
+    private void CancelTranslation()
+    {
+        if (translateCts != null)
+        {
+            translateCts.Cancel();
+            translationStatus = "Cancelling...";
+        }
+    }
+
     public void Dispose()
     {
         SpeechService.OnResult -= OnSpeechResult;
         SpeechService.OnError -= OnSpeechError;
         SpeechService.OnStarted -= OnSpeechStarted;
         SpeechService.OnEnded -= OnSpeechEnded;
+        translateCts?.Dispose();
         objRef?.Dispose();
     }
 }
