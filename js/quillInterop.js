@@ -455,18 +455,26 @@ window.quillInterop = {
             if (isShortcut) {
                 const key = e.key.toLowerCase();
                 if (key === 'c') {
+                    const range = window.quillInterop.quill ? window.quillInterop.quill.getSelection() : null;
+                    if (range && range.length > 0) {
+                        // Let browser handle native copy of selected text (preserves formatting)
+                        return;
+                    }
                     e.preventDefault();
                     window.quillInterop.copyText();
                     return;
                 }
                 if (key === 'v') {
-                    e.preventDefault();
-                    window.quillInterop.pasteText();
+                    // Let browser handle native paste (avoids permission prompts and preserves formatting)
                     return;
                 }
                 if (key === 'x') {
+                    const range = window.quillInterop.quill ? window.quillInterop.quill.getSelection() : null;
+                    if (range && range.length > 0) {
+                        // Let browser handle native cut of selected text
+                        return;
+                    }
                     e.preventDefault();
-                    window.quillInterop.cutText();
                     return;
                 }
             }
@@ -474,7 +482,21 @@ window.quillInterop = {
             if (window.isKannadaMode) {
                 window.quillInterop.lastKeyHandledTime = Date.now();
 
-                // Handle Backspace via keydown
+                // Handle Backspace and Delete when there is a selection
+                if (e.key === 'Backspace' || e.key === 'Delete') {
+                    const range = window.quillInterop.quill ? window.quillInterop.quill.getSelection() : null;
+                    if (range && range.length > 0) {
+                        e.preventDefault();
+                        window.quillInterop.quill.deleteText(range.index, range.length, 'user');
+                        window.quillInterop.quill.setSelection(range.index, 0);
+                        if (dotNetReference) {
+                            dotNetReference.invokeMethodAsync('OnSelectionChanged');
+                        }
+                        return;
+                    }
+                }
+
+                // Handle Backspace via keydown (when there is no selection)
                 if (e.key === 'Backspace') {
                     e.preventDefault();
 
@@ -496,6 +518,15 @@ window.quillInterop = {
                         window.quillInterop._processingBackspace = false;
                     });
 
+                    return;
+                }
+
+                // Handle Delete via keydown (when there is no selection)
+                if (e.key === 'Delete') {
+                    // Let native delete happen, but clear the transliteration buffer
+                    if (dotNetReference) {
+                        dotNetReference.invokeMethodAsync('OnSelectionChanged');
+                    }
                     return;
                 }
 
