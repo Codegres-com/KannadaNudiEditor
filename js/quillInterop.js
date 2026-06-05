@@ -6,6 +6,8 @@ window.quillInterop = {
     lastProcessedTime: 0,
     lastProcessedSource: null,
     _processingBackspace: false,
+    lastSelection: null,
+    _isPasting: false,
 
     // Returns true if the string contains any Kannada Unicode character (U+0C80–U+0CFF).
     // Used to detect OS-level Kannada keyboard input so we can bypass transliteration.
@@ -118,6 +120,9 @@ window.quillInterop = {
         }
 
         this.quill.on('selection-change', function(range, oldRange, source) {
+            if (range) {
+                window.quillInterop.lastSelection = range;
+            }
             // Prevent buffer clearing if we just handled a key/input event recently
             // Increased timeout to 2000ms to handle slower mobile typing/rendering updates
             if (Date.now() - window.quillInterop.lastKeyHandledTime < 2000) {
@@ -133,6 +138,9 @@ window.quillInterop = {
         // Mobile Input Support via text-change (Fallback)
         this.quill.on('text-change', (delta, oldDelta, source) => {
             if (source === 'user' && window.isKannadaMode) {
+                if (window.quillInterop._isPasting) {
+                    return; // Skip transliterating pasted content
+                }
                 if (!this.dotNetRef) return;
 
                 let index = 0;
@@ -208,6 +216,22 @@ window.quillInterop = {
                 }
             }
         });
+
+        // Setup direct click handlers for Copy and Paste buttons to ensure they execute inside user gesture context
+        const btnCopy = document.getElementById('btn-copy');
+        const btnPaste = document.getElementById('btn-paste');
+        if (btnCopy) {
+            btnCopy.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await window.quillInterop.copyText();
+            });
+        }
+        if (btnPaste) {
+            btnPaste.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await window.quillInterop.pasteText();
+            });
+        }
     },
 
     insertText: function (text) {
@@ -311,6 +335,18 @@ window.quillInterop = {
 
         console.log("Registering key interceptors on #quill-editor");
 
+        // Listen for paste event to disable transliteration during pasting
+        editorDiv.addEventListener('paste', (e) => {
+            console.log("Global paste event detected");
+            window.quillInterop._isPasting = true;
+            if (dotNetReference) {
+                dotNetReference.invokeMethodAsync('OnSelectionChanged'); // clear transliteration buffer
+            }
+            setTimeout(() => {
+                window.quillInterop._isPasting = false;
+            }, 150); // Keep it true long enough to bypass beforeinput and text-change events
+        }, true);
+
         // --- TOUCH HANDLING ---
         editorDiv.addEventListener('touchstart', (e) => {
              if (window.isKannadaMode) {
@@ -341,6 +377,15 @@ window.quillInterop = {
         // --- INPUT HANDLING ---
         editorDiv.addEventListener('beforeinput', (e) => {
              if (window.isKannadaMode) {
+                // If we are currently pasting, do not intercept/transliterate
+                if (window.quillInterop._isPasting || e.inputType === 'insertFromPaste') {
+                    window.quillInterop.lastKeyHandledTime = Date.now();
+                    if (dotNetReference) {
+                        dotNetReference.invokeMethodAsync('OnSelectionChanged'); // clear transliteration buffer
+                    }
+                    return;
+                }
+
                 // Update time for ANY input activity to prevent buffer clearing
                 window.quillInterop.lastKeyHandledTime = Date.now();
 
@@ -405,6 +450,27 @@ window.quillInterop = {
 
         // Keep keydown for special keys or older browsers
         editorDiv.addEventListener('keydown', (e) => {
+            // Support keyboard shortcuts for copy/paste/cut natively or programmatically
+            const isShortcut = e.ctrlKey || e.metaKey;
+            if (isShortcut) {
+                const key = e.key.toLowerCase();
+                if (key === 'c') {
+                    e.preventDefault();
+                    window.quillInterop.copyText();
+                    return;
+                }
+                if (key === 'v') {
+                    e.preventDefault();
+                    window.quillInterop.pasteText();
+                    return;
+                }
+                if (key === 'x') {
+                    e.preventDefault();
+                    window.quillInterop.cutText();
+                    return;
+                }
+            }
+
             if (window.isKannadaMode) {
                 window.quillInterop.lastKeyHandledTime = Date.now();
 
@@ -456,70 +522,105 @@ window.quillInterop = {
     copyText: async function() {
         if (!this.quill) return;
         this.quill.focus();
-        try {
-            // Try execCommand first to preserve rich text formatting
-            const successful = document.execCommand('copy');
-            if (successful) {
-                console.log('Rich text copied via execCommand');
-                return;
-            }
-        } catch (err) {
-            console.warn('execCommand copy failed', err);
+        
+        let range = this.quill.getSelection() || window.quillInterop.lastSelection;
+        let text = "";
+        
+        if (range && range.length > 0) {
+            text = this.quill.getText(range.index, range.length);
+        } else {
+            text = this.quill.getText();
         }
 
-        // Fallback to plain text via Clipboard API
-        const range = this.quill.getSelection();
-        if (range && range.length > 0) {
-            const text = this.quill.getText(range.index, range.length);
-            try {
-                await navigator.clipboard.writeText(text);
-                console.log('Text copied to clipboard (Plain)');
-            } catch (err) {
-                console.error('Failed to copy: ', err);
+        if (!text) return;
+
+        try {
+            // First try modern clipboard API
+            await navigator.clipboard.writeText(text);
+            console.log('Text copied to clipboard via Clipboard API');
+            return;
+        } catch (err) {
+            console.warn('Clipboard API writeText failed, trying execCommand:', err);
+        }
+
+        try {
+            // Fallback to execCommand copy
+            const successful = document.execCommand('copy');
+            if (successful) {
+                console.log('Text copied via execCommand');
+            } else {
+                console.warn('execCommand copy returned false');
             }
+        } catch (err) {
+            console.error('execCommand copy failed:', err);
         }
     },
 
     pasteText: async function() {
         if (!this.quill) return;
-        this.quill.focus();
-
-        // Try Async Clipboard API for HTML (Rich Text)
+        window.quillInterop._isPasting = true;
         try {
-            const items = await navigator.clipboard.read();
-            for (const item of items) {
-                if (item.types.includes('text/html')) {
-                    const blob = await item.getType('text/html');
-                    const html = await blob.text();
+            this.quill.focus();
+            let range = this.quill.getSelection(true) || window.quillInterop.lastSelection;
+            
+            // Try Async Clipboard API for HTML (Rich Text)
+            try {
+                const items = await navigator.clipboard.read();
+                for (const item of items) {
+                    if (item.types.includes('text/html')) {
+                        const blob = await item.getType('text/html');
+                        const html = await blob.text();
 
-                    const range = this.quill.getSelection(true);
-                    if (range) {
-                        this.quill.deleteText(range.index, range.length);
-                        this.quill.clipboard.dangerouslyPasteHTML(range.index, html);
-                    } else {
-                        const len = this.quill.getLength();
-                        this.quill.clipboard.dangerouslyPasteHTML(len - 1, html);
+                        if (range) {
+                            this.quill.deleteText(range.index, range.length);
+                            this.quill.clipboard.dangerouslyPasteHTML(range.index, html);
+                            this.quill.setSelection(range.index + html.length, 0);
+                        } else {
+                            const len = this.quill.getLength();
+                            this.quill.clipboard.dangerouslyPasteHTML(len - 1, html);
+                        }
+                        return; // Success
                     }
-                    return; // Success
                 }
+            } catch (err) {
+                console.warn('Clipboard.read() failed or permission denied, falling back to text', err);
             }
-        } catch (err) {
-            console.warn('Clipboard.read() failed or permission denied, falling back to text', err);
-        }
 
-        // Fallback to plain text
-        try {
-            const text = await navigator.clipboard.readText();
-            const range = this.quill.getSelection(true);
-            if (range) {
-                this.quill.deleteText(range.index, range.length);
-                this.quill.insertText(range.index, text);
-            } else {
-                const len = this.quill.getLength();
-                this.quill.insertText(len - 1, text);
+            // Fallback to plain text
+            try {
+                const text = await navigator.clipboard.readText();
+                if (range) {
+                    this.quill.deleteText(range.index, range.length);
+                    this.quill.insertText(range.index, text);
+                    this.quill.setSelection(range.index + text.length, 0);
+                } else {
+                    const len = this.quill.getLength();
+                    this.quill.insertText(len - 1, text);
+                }
+            } catch (err) {
+                console.error('Failed to paste: ', err);
             }
-        } catch (err) {
-            console.error('Failed to paste: ', err);
+        } finally {
+            setTimeout(() => {
+                window.quillInterop._isPasting = false;
+            }, 100);
+        }
+    },
+
+    cutText: async function() {
+        if (!this.quill) return;
+        this.quill.focus();
+        
+        let range = this.quill.getSelection() || window.quillInterop.lastSelection;
+        if (range && range.length > 0) {
+            const text = this.quill.getText(range.index, range.length);
+            try {
+                await navigator.clipboard.writeText(text);
+                this.quill.deleteText(range.index, range.length, 'user');
+                console.log('Text cut to clipboard');
+            } catch (err) {
+                console.error('Failed to cut: ', err);
+            }
         }
     },
 
@@ -565,5 +666,32 @@ window.quillInterop = {
         return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ||
                /Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ||
                (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 0);
+    },
+
+    getSelectedText: function() {
+        if (this.quill) {
+            const range = this.quill.getSelection();
+            if (range && range.length > 0) {
+                return this.quill.getText(range.index, range.length);
+            }
+        }
+        return "";
+    },
+
+    replaceSelection: function(text) {
+        if (this.quill) {
+            const range = this.quill.getSelection(true);
+            if (range) {
+                this.quill.deleteText(range.index, range.length);
+                this.quill.insertText(range.index, text);
+                this.quill.setSelection(range.index + text.length, 0);
+            }
+        }
+    },
+
+    setText: function(text) {
+        if (this.quill) {
+            this.quill.setText(text);
+        }
     }
 };
