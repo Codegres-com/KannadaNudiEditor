@@ -1,0 +1,31 @@
+{
+  "name": "kannadanudilinux",
+  "version": "1.0.0",
+  "description": "Kannada Nudi Editor desktop app",
+  "main": "main.js",
+  "homepage": "https://codegres.com",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Codegres",
+    "email": "contact@codegres.com"
+  },
+  "license": "ISC",
+  "build": {
+    "appId": "com.codegres.kannadanudi",
+    "productName": "KannadaNudi",
+    "files": ["main.js", "app/**/*", "icon.png"],
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "icon.png",
+      "category": "Utility"
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  }
+}
