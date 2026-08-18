@@ -1,0 +1,46 @@
+{
+  "name": "kannadanudimac",
+  "version": "1.0.0",
+  "description": "Kannada Nudi Editor desktop app for macOS",
+  "main": "main.js",
+  "homepage": "https://codegres.com",
+  "scripts": {
+    "start": "electron .",
+    "package": "node package-app.js",
+    "dist:dir": "npm run package && electron-builder --mac --dir",
+    "dist": "npm run package && electron-builder --mac dmg pkg",
+    "build-all": "npm run dist"
+  },
+  "keywords": [
+    "kannada",
+    "nudi",
+    "editor",
+    "text-editor",
+    "desktop",
+    "mac",
+    "macos"
+  ],
+  "author": {
+    "name": "Codegres",
+    "email": "contact@codegres.com"
+  },
+  "license": "ISC",
+  "build": {
+    "appId": "com.codegres.kannadanudi",
+    "productName": "KannadaNudi",
+    "files": [
+      "main.js",
+      "app/**/*",
+      "icon.png"
+    ],
+    "mac": {
+      "target": ["dmg", "pkg"],
+      "icon": "icon.icns",
+      "category": "public.app-category.productivity"
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  }
+}
