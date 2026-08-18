@@ -1,0 +1,186 @@
+name: Build and Release Desktop Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - 'main'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release Tag (e.g., v1.0.0)'
+        required: false
+        default: 'v1.0.0'
+      draft:
+        description: 'Create as a Draft release'
+        type: boolean
+        default: false
+      prerelease:
+        description: 'Create as a Pre-release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build Linux Packages (Ubuntu/Debian)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8.0 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Download offline web assets
+        run: |
+          if [ -f "scripts/download_assets.js" ]; then
+            node scripts/download_assets.js
+          fi
+
+      - name: Install dependencies in KannadaNudiLinux
+        working-directory: ./KannadaNudiLinux
+        run: npm install
+
+      - name: Build Linux Desktop Packages
+        working-directory: ./KannadaNudiLinux
+        run: npm run dist
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: |
+            KannadaNudiLinux/dist/kannadanudi_*.deb
+            KannadaNudiLinux/dist/kannadanudilinux-*.tar.gz
+            KannadaNudiLinux/dist/kannadanudilinux-*.zip
+            KannadaNudiLinux/dist/*.AppImage
+          if-no-files-found: warn
+
+  build-windows:
+    name: Build Windows Packages (EXE/NSIS)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8.0 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Download offline web assets
+        run: |
+          if (Test-Path "scripts/download_assets.js") {
+            node scripts/download_assets.js
+          }
+
+      - name: Install dependencies in KannadaNudiWindows
+        working-directory: ./KannadaNudiWindows
+        run: npm install
+
+      - name: Build Windows Desktop Packages
+        working-directory: ./KannadaNudiWindows
+        run: npm run dist
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages
+          path: |
+            KannadaNudiWindows/dist/KannadaNudi Setup *.exe
+            KannadaNudiWindows/dist/KannadaNudi *.exe
+            KannadaNudiWindows/dist/KannadaNudi-*-win.zip
+          if-no-files-found: warn
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-linux, build-windows]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-packages
+          path: release-assets/
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-packages
+          path: release-assets/
+
+      - name: Generate Checksums (SHA-256)
+        working-directory: release-assets
+        run: |
+          sha256sum * > SHA256SUMS.txt || true
+          ls -la
+
+      - name: Determine Release Tag
+        id: vars
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=v1.0.0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: Kannada Nudi Desktop ${{ steps.vars.outputs.tag }}
+          draft: ${{ github.event.inputs.draft || false }}
+          prerelease: ${{ github.event.inputs.prerelease || false }}
+          files: |
+            release-assets/*
+          body: |
+            ## 🌸 Kannada Nudi Desktop Release ${{ steps.vars.outputs.tag }}
+
+            Standalone offline desktop edition of **Kannada Nudi Editor**, powered by .NET 8 Blazor WebAssembly and Electron.
+
+            ### 📦 Download Packages
+
+            #### 🪟 Windows (64-bit)
+            - **`KannadaNudi Setup *.exe`** — Recommended NSIS installer with desktop & start menu shortcuts.
+            - **`KannadaNudi *.exe`** — Portable standalone single-file executable (no installation needed).
+            - **`KannadaNudi-*-win.zip`** — Portable ZIP archive.
+
+            #### 🐧 Linux (64-bit)
+            - **`kannadanudi_*_amd64.deb`** — Ubuntu / Debian package. Install via `sudo dpkg -i <filename>.deb`.
+            - **`kannadanudilinux-*.tar.gz`** — Portable compressed tarball for all Linux distributions.
+            - **`kannadanudilinux-*.zip`** — Portable ZIP archive.
+
+            ---
+
+            ### 🌟 Key Features
+            - **100% Offline Capability**: Runs entirely locally with zero external internet dependencies.
+            - **Kannada Typing**: Seamless Kannada phonetic keyboard layout and Unicode support.
+            - **Unicode ↔ ASCII Conversion**: Convert legacy ASCII Nudi/Baraha text to Unicode and vice-versa.
+            - **Rich Editing**: LaTeX formula rendering, DocX import/export, and styling tools.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
