@@ -26,6 +26,28 @@ function downloadFile(url, dest) {
 async function main() {
   const baseDir = path.join(__dirname, '..', 'KannadaNudiWeb', 'wwwroot');
   
+  console.log('Downloading Core CSS & JS libraries...');
+  const directFiles = [
+    { url: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css', dest: path.join(baseDir, 'lib', 'bootstrap', 'bootstrap.min.css') },
+    { url: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', dest: path.join(baseDir, 'lib', 'bootstrap', 'bootstrap.bundle.min.js') },
+    { url: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css', dest: path.join(baseDir, 'lib', 'bootstrap-icons', 'bootstrap-icons.min.css') },
+    { url: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/fonts/bootstrap-icons.woff2', dest: path.join(baseDir, 'lib', 'bootstrap-icons', 'fonts', 'bootstrap-icons.woff2') },
+    { url: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/fonts/bootstrap-icons.woff', dest: path.join(baseDir, 'lib', 'bootstrap-icons', 'fonts', 'bootstrap-icons.woff') },
+    { url: 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css', dest: path.join(baseDir, 'lib', 'katex', 'katex.min.css') },
+    { url: 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js', dest: path.join(baseDir, 'lib', 'katex', 'katex.min.js') },
+    { url: 'https://cdn.jsdelivr.net/npm/docshift@latest/dist/docshift.min.js', dest: path.join(baseDir, 'lib', 'docshift', 'docshift.min.js') },
+    { url: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js', dest: path.join(baseDir, 'lib', 'mammoth', 'mammoth.browser.min.js') },
+  ];
+
+  for (const f of directFiles) {
+    try {
+      console.log(`Downloading ${path.basename(f.dest)}...`);
+      await downloadFile(f.url, f.dest);
+    } catch (e) {
+      console.warn(`Failed ${f.url}: ${e.message}`);
+    }
+  }
+
   // KaTeX fonts
   const katexFonts = [
     'KaTeX_AMS-Regular.woff2', 'KaTeX_AMS-Regular.woff', 'KaTeX_AMS-Regular.ttf',
@@ -57,10 +79,9 @@ async function main() {
     }
   }
 
-  // Google Fonts Poppins (woff2)
-  console.log('Downloading Poppins fonts...');
-  // We can fetch Poppins woff2 or ttf files
-  const poppinsFonts = [
+  // Google Fonts Poppins & Noto Sans Kannada
+  console.log('Downloading Poppins and Noto Sans Kannada fonts...');
+  const fontList = [
     { name: 'Poppins-Regular.ttf', url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf' },
     { name: 'Poppins-Medium.ttf', url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Medium.ttf' },
     { name: 'Poppins-SemiBold.ttf', url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-SemiBold.ttf' },
@@ -68,7 +89,7 @@ async function main() {
     { name: 'NotoSansKannada-Regular.ttf', url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/notosanskannada/NotoSansKannada%5Bwdth%2Cwght%5D.ttf' }
   ];
 
-  for (const font of poppinsFonts) {
+  for (const font of fontList) {
     const dest = path.join(baseDir, 'fonts', font.name);
     try {
       console.log(`Downloading ${font.name}...`);
@@ -78,7 +99,7 @@ async function main() {
     }
   }
 
-  console.log('All downloads completed successfully!');
+  console.log('All offline assets downloaded successfully!');
 }
 
 main().catch(console.error);

@@ -1,0 +1,60 @@
+{
+  "name": "kannadanudiwindows",
+  "version": "1.0.0",
+  "description": "Kannada Nudi Editor desktop app for Windows",
+  "main": "main.js",
+  "homepage": "https://codegres.com",
+  "scripts": {
+    "start": "electron .",
+    "package": "node package-app.js",
+    "dist:unpacked": "npm run package && electron-builder --win --dir",
+    "dist:nsis": "npm run package && electron-builder --win nsis",
+    "dist:portable": "npm run package && electron-builder --win portable",
+    "dist": "npm run package && electron-builder --win nsis portable zip dir",
+    "build-all": "npm run dist"
+  },
+  "keywords": [
+    "kannada",
+    "nudi",
+    "editor",
+    "text-editor",
+    "desktop",
+    "windows",
+    "exe"
+  ],
+  "author": {
+    "name": "Codegres",
+    "email": "contact@codegres.com"
+  },
+  "license": "ISC",
+  "build": {
+    "appId": "com.codegres.kannadanudi",
+    "productName": "KannadaNudi",
+    "files": [
+      "main.js",
+      "app/**/*",
+      "icon.ico",
+      "icon.png"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable",
+        "zip",
+        "dir"
+      ],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Kannada Nudi"
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  }
+}
