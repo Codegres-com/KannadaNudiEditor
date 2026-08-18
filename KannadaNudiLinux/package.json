@@ -4,6 +4,7 @@
   "description": "Kannada Nudi Editor desktop app",
   "main": "main.js",
   "homepage": "https://codegres.com",
+  "desktopName": "kannadanudi.desktop",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder"
@@ -21,7 +22,8 @@
     "linux": {
       "target": ["AppImage", "deb"],
       "icon": "icon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "syncDesktopName": true
     }
   },
   "devDependencies": {
