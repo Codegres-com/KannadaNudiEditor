@@ -10,6 +10,7 @@
     "dist:unpacked": "npm run package && electron-builder --linux --dir",
     "dist:tar": "npm run package && electron-builder --linux tar.gz",
     "dist:deb": "npm run dist:unpacked && node build-deb.js",
+    "dist:snap": "npm run package && electron-builder --linux snap",
     "dist": "npm run package && electron-builder --linux tar.gz zip dir && node build-deb.js",
     "build-all": "npm run dist"
   },
@@ -20,7 +21,8 @@
     "text-editor",
     "desktop",
     "linux",
-    "ubuntu"
+    "ubuntu",
+    "snap"
   ],
   "author": {
     "name": "Codegres",
@@ -44,6 +46,23 @@
       "icon": "icon.png",
       "category": "Utility",
       "maintainer": "Codegres <contact@codegres.com>"
+    },
+    "snap": {
+      "confinement": "strict",
+      "grade": "stable",
+      "summary": "Offline Kannada Nudi Text Editor",
+      "category": "Office;Utility;",
+      "plugs": [
+        "desktop",
+        "desktop-legacy",
+        "wayland",
+        "x11",
+        "audio-playback",
+        "home",
+        "browser-support",
+        "network",
+        "network-bind"
+      ]
     }
   },
   "devDependencies": {

@@ -8,24 +8,24 @@ The desktop app packages the .NET 8 Blazor WebAssembly editor with Electron, run
 
 ## 📦 Build Artifacts (in `dist/`)
 
-After building, the following artifacts are generated in `dist/`:
+After building, the following URL-safe artifacts are generated in `dist/`:
 
 | Artifact | Description | Target |
 | :--- | :--- | :--- |
-| `KannadaNudi Setup 1.0.0.exe` | Windows NSIS Setup installer (Desktop shortcut, Start Menu) | Windows 64-bit Installer |
-| `KannadaNudi 1.0.0.exe` | Portable single-file standalone executable | Windows 64-bit Portable |
-| `KannadaNudi-1.0.0-win.zip` | Portable zipped folder | Windows 64-bit Portable |
+| `KannadaNudi-Setup-1.0.0.exe` | Windows NSIS Setup installer (Desktop shortcut, Start Menu) | Windows 64-bit Installer |
+| `KannadaNudi-Portable-1.0.0.exe` | Portable single-file standalone executable | Windows 64-bit Portable |
+| `KannadaNudi-1.0.0-win-x64.zip` | Portable zipped folder | Windows 64-bit Portable |
 | `win-unpacked/KannadaNudi.exe` | Direct standalone unpacked executable folder | Windows 64-bit Direct Run |
 
 ---
 
 ## 🚀 Running on Windows
 
-### Option 1: Installer (`KannadaNudi Setup 1.0.0.exe`)
-Double-click `KannadaNudi Setup 1.0.0.exe` to install Kannada Nudi Editor with desktop and start menu shortcuts.
+### Option 1: Installer (`KannadaNudi-Setup-1.0.0.exe`)
+Double-click `KannadaNudi-Setup-1.0.0.exe` to install Kannada Nudi Editor with desktop and start menu shortcuts.
 
-### Option 2: Portable Executable (`KannadaNudi 1.0.0.exe`)
-Double-click `KannadaNudi 1.0.0.exe` to run immediately with no installation required.
+### Option 2: Portable Executable (`KannadaNudi-Portable-1.0.0.exe`)
+Double-click `KannadaNudi-Portable-1.0.0.exe` to run immediately with no installation required.
 
 ### Option 3: Unpacked folder (`win-unpacked/KannadaNudi.exe`)
 Run `dist\win-unpacked\KannadaNudi.exe` directly.

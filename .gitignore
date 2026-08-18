@@ -1,0 +1,19 @@
+# Environment and Credentials
+snap-login.txt
+*.token
+*.pfx
+*.key
+
+# IDE and OS
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+[Dd]esktop.ini
+
+# Build artifacts
+**/bin/
+**/obj/
+**/publish/
+**/dist/
+**/node_modules/

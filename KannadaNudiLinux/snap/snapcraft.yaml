@@ -1,0 +1,62 @@
+name: kannadanudi
+title: Kannada Nudi Editor
+base: core22
+version: '1.0.0'
+summary: Kannada Nudi Editor desktop app
+description: |
+  Kannada Nudi Editor is a rich text editor designed to make writing in Kannada effortless.
+  
+  Key Features:
+  - Kannada phonetic keyboard typing with live ligatures
+  - Unicode to ASCII and ASCII to Unicode conversions
+  - LaTeX formula rendering and mathematical expressions
+  - Microsoft Word (.docx) import and export
+  - 100% self-contained and offline capable with zero external internet dependencies.
+
+license: ISC
+contact: contact@codegres.com
+website: https://codegres.com
+issues: https://github.com/Codegres-com/KannadaNudiEditor/issues
+source-code: https://github.com/Codegres-com/KannadaNudiEditor
+
+grade: stable
+confinement: strict
+compression: lzo
+
+architectures:
+  - build-on: amd64
+
+apps:
+  kannadanudi:
+    command: kannadanudilinux
+    extensions: [gnome]
+    plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - unity7
+      - audio-playback
+      - home
+      - browser-support
+      - network
+      - network-bind
+    environment:
+      DISABLE_WAYLAND: '1'
+      TMPDIR: '$XDG_RUNTIME_DIR'
+
+parts:
+  kannadanudi:
+    plugin: dump
+    source: dist/linux-unpacked
+    organize:
+      '*': .
+    stage-packages:
+      - libnss3
+      - libasound2
+      - libatk1.0-0
+      - libatk-bridge2.0-0
+      - libgdk-pixbuf2.0-0
+      - libgtk-3-0
+      - libxss1
+      - libxtst6
