@@ -29,7 +29,6 @@ packages/
 
 publish/
 wwwroot/dist/
-wwwroot/lib/
 
 # Logs
 

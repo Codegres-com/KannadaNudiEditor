@@ -1,15 +1,27 @@
 {
   "name": "kannadanudilinux",
   "version": "1.0.0",
-  "description": "Kannada Nudi Editor desktop app",
+  "description": "Kannada Nudi Editor desktop app for Linux / Ubuntu",
   "main": "main.js",
   "homepage": "https://codegres.com",
-  "desktopName": "kannadanudi.desktop",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "package": "node package-app.js",
+    "dist:unpacked": "npm run package && electron-builder --linux --dir",
+    "dist:tar": "npm run package && electron-builder --linux tar.gz",
+    "dist:deb": "npm run dist:unpacked && node build-deb.js",
+    "dist": "npm run package && electron-builder --linux tar.gz zip dir && node build-deb.js",
+    "build-all": "npm run dist"
   },
-  "keywords": [],
+  "keywords": [
+    "kannada",
+    "nudi",
+    "editor",
+    "text-editor",
+    "desktop",
+    "linux",
+    "ubuntu"
+  ],
   "author": {
     "name": "Codegres",
     "email": "contact@codegres.com"
@@ -18,12 +30,20 @@
   "build": {
     "appId": "com.codegres.kannadanudi",
     "productName": "KannadaNudi",
-    "files": ["main.js", "app/**/*", "icon.png"],
+    "files": [
+      "main.js",
+      "app/**/*",
+      "icon.png"
+    ],
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "tar.gz",
+        "zip",
+        "dir"
+      ],
       "icon": "icon.png",
       "category": "Utility",
-      "syncDesktopName": true
+      "maintainer": "Codegres <contact@codegres.com>"
     }
   },
   "devDependencies": {
