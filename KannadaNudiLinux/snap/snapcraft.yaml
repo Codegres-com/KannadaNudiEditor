@@ -1,6 +1,6 @@
 name: kannadanudi
 title: Kannada Nudi Editor
-base: core22
+base: core24
 version: '1.0.0'
 summary: Kannada Nudi Editor desktop app
 description: |
@@ -23,8 +23,8 @@ grade: stable
 confinement: strict
 compression: lzo
 
-architectures:
-  - build-on: amd64
+platforms:
+  amd64:
 
 apps:
   kannadanudi:
@@ -53,10 +53,9 @@ parts:
       '*': .
     stage-packages:
       - libnss3
-      - libasound2
-      - libatk1.0-0
-      - libatk-bridge2.0-0
-      - libgdk-pixbuf2.0-0
-      - libgtk-3-0
+      - libnspr4
       - libxss1
       - libxtst6
+      - libasound2t64
+      - libdrm2
+      - libgbm1

@@ -48,6 +48,7 @@
       "maintainer": "Codegres <contact@codegres.com>"
     },
     "snap": {
+      "base": "core24",
       "confinement": "strict",
       "grade": "stable",
       "summary": "Offline Kannada Nudi Text Editor",
