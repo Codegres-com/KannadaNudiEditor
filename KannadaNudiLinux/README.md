@@ -12,10 +12,10 @@ After building, the following artifacts are generated in `dist/`:
 
 | Artifact | Description | Target |
 | :--- | :--- | :--- |
-| `kannadanudi_1.0.0_amd64.deb` | Ubuntu / Debian native installer package | Ubuntu / Debian / Mint |
-| `kannadanudi_1.0.0_amd64.snap` | Canonical Snap package for Snap Store | Ubuntu / All Snap-enabled distros |
-| `kannadanudilinux-1.0.0.tar.gz` | Portable compressed archive | All Linux distributions |
-| `kannadanudilinux-1.0.0.zip` | Portable zip archive | All Linux distributions |
+| `kannadanudi_1.0.1_amd64.deb` | Ubuntu / Debian native installer package | Ubuntu / Debian / Mint |
+| `kannadanudi_1.0.1_amd64.snap` | Canonical Snap package for Snap Store | Ubuntu / All Snap-enabled distros |
+| `kannadanudilinux-1.0.1.tar.gz` | Portable compressed archive | All Linux distributions |
+| `kannadanudilinux-1.0.1.zip` | Portable zip archive | All Linux distributions |
 | `linux-unpacked/` | Unpacked executable folder (`./kannadanudilinux`) | Linux x64 direct run |
 
 ---
@@ -24,20 +24,20 @@ After building, the following artifacts are generated in `dist/`:
 
 ### Option 1: Install Snap Package (`.snap`)
 ```bash
-sudo snap install dist/kannadanudi_1.0.0_amd64.snap --dangerous
+sudo snap install dist/kannadanudi_1.0.1_amd64.snap --dangerous
 ```
 
 ### Option 2: Install Debian / Ubuntu Package (`.deb`)
 ```bash
-sudo dpkg -i dist/kannadanudi_1.0.0_amd64.deb
+sudo dpkg -i dist/kannadanudi_1.0.1_amd64.deb
 # If there are missing dependencies:
 sudo apt-get install -f
 ```
 
 ### Option 3: Portable `tar.gz`
 ```bash
-tar -xzf dist/kannadanudilinux-1.0.0.tar.gz
-cd kannadanudilinux-1.0.0
+tar -xzf dist/kannadanudilinux-1.0.1.tar.gz
+cd kannadanudilinux-1.0.1
 chmod +x kannadanudilinux
 ./kannadanudilinux
 ```
@@ -67,7 +67,7 @@ snapcraft register kannadanudi
 snapcraft
 
 # Upload and release to the stable channel
-snapcraft upload kannadanudi_1.0.0_amd64.snap --release=stable
+snapcraft upload kannadanudi_1.0.1_amd64.snap --release=stable
 ```
 
 ### 4. Automated Publishing via GitHub Actions

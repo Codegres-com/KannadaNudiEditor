@@ -35,10 +35,12 @@ function writeArArchive(outFile, members) {
 
 async function buildDebianPackage() {
   const linuxDir = __dirname;
+  const pkg = JSON.parse(fs.readFileSync(path.join(linuxDir, 'package.json'), 'utf8'));
+  const version = pkg.version || '1.0.1';
   const unpackedDir = path.join(linuxDir, 'dist', 'linux-unpacked');
   const distDir = path.join(linuxDir, 'dist');
   const tempDir = path.join(distDir, 'temp-deb');
-  const debOutput = path.join(distDir, 'kannadanudi_1.0.0_amd64.deb');
+  const debOutput = path.join(distDir, `kannadanudi_${version}_amd64.deb`);
 
   if (!fs.existsSync(unpackedDir)) {
     console.error('Error: dist/linux-unpacked does not exist. Run electron-builder first.');
@@ -128,7 +130,7 @@ StartupWMClass=kannadanudilinux
   const installedSizeKb = Math.ceil(totalBytes / 1024);
 
   const controlContent = `Package: kannadanudi
-Version: 1.0.0
+Version: ${version}
 Section: utils
 Priority: optional
 Architecture: amd64
