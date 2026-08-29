@@ -22,6 +22,7 @@ After building, the following artifacts are generated in `dist/`:
 
 ## 🚀 Installation & Running on Ubuntu / Linux
 
+
 ### Option 1: Install Snap Package (`.snap`)
 ```bash
 sudo snap install dist/kannadanudi_1.0.1_amd64.snap --dangerous
