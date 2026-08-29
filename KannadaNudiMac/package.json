@@ -1,0 +1,97 @@
+{
+  "name": "kannadanudimac",
+  "version": "1.0.1",
+  "description": "Kannada Nudi Editor desktop app for macOS",
+  "main": "main.js",
+  "homepage": "https://codegres.com",
+  "scripts": {
+    "start": "electron .",
+    "package": "node package-app.js",
+    "dist:dmg": "npm run package && python build_dmg.py",
+    "dist:zip": "npm run package && python build_dmg.py",
+    "dist:arm64": "npm run package && python build_dmg.py",
+    "dist:x64": "npm run package && python build_dmg.py",
+    "dist": "npm run package && python build_dmg.py",
+    "dist:builder": "npm run package && electron-builder --mac dmg zip",
+    "build-all": "npm run dist"
+  },
+  "keywords": [
+    "kannada",
+    "nudi",
+    "editor",
+    "text-editor",
+    "desktop",
+    "mac",
+    "macos",
+    "dmg",
+    "apple-silicon",
+    "universal"
+  ],
+  "author": {
+    "name": "Codegres",
+    "email": "contact@codegres.com"
+  },
+  "license": "ISC",
+  "build": {
+    "appId": "com.codegres.kannadanudi",
+    "productName": "KannadaNudi",
+    "copyright": "Copyright © 2026 Codegres",
+    "files": [
+      "main.js",
+      "app/**/*",
+      "icon.icns",
+      "icon.png"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "icon.icns",
+      "artifactName": "${productName}-${version}-Mac-${arch}.${ext}",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "darkModeSupport": true,
+      "minimumSystemVersion": "10.13.0"
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "icon": "icon.icns",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220,
+          "type": "file"
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "artifactName": "${productName}-${version}-Mac-${arch}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  }
+}

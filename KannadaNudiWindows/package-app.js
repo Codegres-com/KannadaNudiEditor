@@ -73,6 +73,14 @@ const essentialFiles = [
   path.join(WIN_WWWROOT, 'lib', 'katex', 'katex.min.js'),
   path.join(WIN_WWWROOT, 'lib', 'docshift', 'docshift.min.js'),
   path.join(WIN_WWWROOT, 'lib', 'mammoth', 'mammoth.browser.min.js'),
+  path.join(WIN_WWWROOT, 'lib', 'transformers', 'transformers.min.js'),
+  path.join(WIN_WWWROOT, 'lib', 'transformers', 'ort-wasm-simd.wasm'),
+  path.join(WIN_WWWROOT, 'js', 'speech.js'),
+  path.join(WIN_WWWROOT, 'js', 'speech-worker.js'),
+  path.join(WIN_WWWROOT, 'models', 'Xenova', 'whisper-tiny', 'config.json'),
+  path.join(WIN_WWWROOT, 'models', 'Xenova', 'whisper-tiny', 'tokenizer.json'),
+  path.join(WIN_WWWROOT, 'models', 'Xenova', 'whisper-tiny', 'onnx', 'encoder_model_quantized.onnx'),
+  path.join(WIN_WWWROOT, 'models', 'Xenova', 'whisper-tiny', 'onnx', 'decoder_model_merged_quantized.onnx'),
   path.join(WIN_WWWROOT, 'fonts', 'SmartNudi1-Regular_0.ttf'),
   path.join(WIN_WWWROOT, 'fonts', 'Poppins-Regular.ttf')
 ];
@@ -86,7 +94,7 @@ for (const file of essentialFiles) {
 }
 
 if (allPassed) {
-  console.log('\n[SUCCESS] Kannada Nudi Web packaged successfully with all offline assets!');
+  console.log('\n[SUCCESS] Kannada Nudi Web packaged successfully with all offline assets & STT models!');
 } else {
   console.warn('\n[COMPLETED WITH WARNINGS] Some expected files were not found.');
 }

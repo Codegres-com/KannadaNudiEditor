@@ -8,10 +8,18 @@ Guided by [**KAGAPA**](https://kagapa.com/).
 
 ---
 
-## 🖥️ OS Compatibility
+## 🖥️ Platform Packages & OS Compatibility
 
-- **Currently Supported:** Android, Apple, Web
-- **Future Plans:** Expanding support to other operating systems.
+| Platform | Project Directory | Output Artifacts | Description |
+| :--- | :--- | :--- | :--- |
+| **macOS** | [`KannadaNudiMac/`](file:///d:/GitHub/KannadaNudiEditor/KannadaNudiMac) | `.dmg`, `.zip` | Apple Silicon (M1/M2/M3/M4) & Intel macOS DMG package |
+| **Windows** | [`KannadaNudiWindows/`](file:///d:/GitHub/KannadaNudiEditor/KannadaNudiWindows) | `.exe`, `.appx`, `.zip` | NSIS Setup installer, Portable EXE, MSIX / Store app |
+| **Linux** | [`KannadaNudiLinux/`](file:///d:/GitHub/KannadaNudiEditor/KannadaNudiLinux) | `.deb`, `.snap`, `.tar.gz` | Ubuntu / Debian package, Snapcraft store package, tarball |
+| **Web** | [`KannadaNudiWeb/`](file:///d:/GitHub/KannadaNudiEditor/KannadaNudiWeb) | Blazor WASM | Standalone browser application & PWA |
+| **Android** | [`KannadaNudiAndroid/`](file:///d:/GitHub/KannadaNudiEditor/KannadaNudiAndroid) | `.apk`, `.aab` | Native Android application |
+| **iOS** | [`KannadaNudi-iOS/`](file:///d:/GitHub/KannadaNudiEditor/KannadaNudi-iOS) | `.ipa` | Native iOS application |
+
+All desktop packages run **100% offline with zero external internet dependencies**.
 
 ---
 

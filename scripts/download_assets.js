@@ -1,16 +1,32 @@
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-function downloadFile(url, dest) {
+function downloadFile(url, dest, force = false) {
   return new Promise((resolve, reject) => {
+    if (!force && fs.existsSync(dest) && fs.statSync(dest).size > 0) {
+      console.log(`  [exists] ${path.basename(dest)}`);
+      return resolve();
+    }
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     const file = fs.createWriteStream(dest);
-    https.get(url, (response) => {
+    const client = url.startsWith('https') ? https : http;
+
+    client.get(url, (response) => {
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-        return downloadFile(response.headers.location, dest).then(resolve).catch(reject);
+        let redirectUrl = response.headers.location;
+        if (!redirectUrl.startsWith('http')) {
+          const u = new URL(url);
+          redirectUrl = `${u.protocol}//${u.host}${redirectUrl}`;
+        }
+        file.close();
+        if (fs.existsSync(dest)) fs.unlinkSync(dest);
+        return downloadFile(redirectUrl, dest, force).then(resolve).catch(reject);
       }
       if (response.statusCode !== 200) {
+        file.close();
+        if (fs.existsSync(dest)) fs.unlinkSync(dest);
         return reject(new Error(`Failed to download ${url}: status ${response.statusCode}`));
       }
       response.pipe(file);
@@ -18,7 +34,9 @@ function downloadFile(url, dest) {
         file.close(() => resolve());
       });
     }).on('error', (err) => {
-      fs.unlink(dest, () => reject(err));
+      file.close();
+      if (fs.existsSync(dest)) fs.unlinkSync(dest);
+      reject(err);
     });
   });
 }
@@ -26,7 +44,9 @@ function downloadFile(url, dest) {
 async function main() {
   const baseDir = path.join(__dirname, '..', 'KannadaNudiWeb', 'wwwroot');
   
-  console.log('Downloading Core CSS & JS libraries...');
+  console.log('--------------------------------------------------');
+  console.log('[1/4] Downloading Core CSS & JS libraries...');
+  console.log('--------------------------------------------------');
   const directFiles = [
     { url: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css', dest: path.join(baseDir, 'lib', 'bootstrap', 'bootstrap.min.css') },
     { url: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', dest: path.join(baseDir, 'lib', 'bootstrap', 'bootstrap.bundle.min.js') },
@@ -49,6 +69,9 @@ async function main() {
   }
 
   // KaTeX fonts
+  console.log('\n--------------------------------------------------');
+  console.log('[2/4] Downloading KaTeX & Typography fonts...');
+  console.log('--------------------------------------------------');
   const katexFonts = [
     'KaTeX_AMS-Regular.woff2', 'KaTeX_AMS-Regular.woff', 'KaTeX_AMS-Regular.ttf',
     'KaTeX_Caligraphic-Bold.woff2', 'KaTeX_Caligraphic-Bold.woff', 'KaTeX_Caligraphic-Bold.ttf',
@@ -68,7 +91,6 @@ async function main() {
     'KaTeX_Typewriter-Regular.woff2', 'KaTeX_Typewriter-Regular.woff', 'KaTeX_Typewriter-Regular.ttf'
   ];
 
-  console.log('Downloading KaTeX fonts...');
   for (const f of katexFonts) {
     const url = `https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/fonts/${f}`;
     const dest = path.join(baseDir, 'lib', 'katex', 'fonts', f);
@@ -80,7 +102,6 @@ async function main() {
   }
 
   // Google Fonts Poppins & Noto Sans Kannada
-  console.log('Downloading Poppins and Noto Sans Kannada fonts...');
   const fontList = [
     { name: 'Poppins-Regular.ttf', url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf' },
     { name: 'Poppins-Medium.ttf', url: 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Medium.ttf' },
@@ -92,14 +113,70 @@ async function main() {
   for (const font of fontList) {
     const dest = path.join(baseDir, 'fonts', font.name);
     try {
-      console.log(`Downloading ${font.name}...`);
       await downloadFile(font.url, dest);
     } catch (e) {
       console.warn(e.message);
     }
   }
 
-  console.log('All offline assets downloaded successfully!');
+  // Transformers.js and ONNX Runtime Web WebAssembly files
+  console.log('\n--------------------------------------------------');
+  console.log('[3/4] Downloading Transformers.js & ONNX WASM binaries...');
+  console.log('--------------------------------------------------');
+  const transformersVersion = '2.17.2';
+  const transformersFiles = [
+    { url: `https://cdn.jsdelivr.net/npm/@xenova/transformers@${transformersVersion}/dist/transformers.min.js`, dest: path.join(baseDir, 'lib', 'transformers', 'transformers.min.js') },
+    { url: `https://cdn.jsdelivr.net/npm/@xenova/transformers@${transformersVersion}/dist/ort-wasm.wasm`, dest: path.join(baseDir, 'lib', 'transformers', 'ort-wasm.wasm') },
+    { url: `https://cdn.jsdelivr.net/npm/@xenova/transformers@${transformersVersion}/dist/ort-wasm-simd.wasm`, dest: path.join(baseDir, 'lib', 'transformers', 'ort-wasm-simd.wasm') },
+    { url: `https://cdn.jsdelivr.net/npm/@xenova/transformers@${transformersVersion}/dist/ort-wasm-threaded.wasm`, dest: path.join(baseDir, 'lib', 'transformers', 'ort-wasm-threaded.wasm') },
+    { url: `https://cdn.jsdelivr.net/npm/@xenova/transformers@${transformersVersion}/dist/ort-wasm-simd-threaded.wasm`, dest: path.join(baseDir, 'lib', 'transformers', 'ort-wasm-simd-threaded.wasm') },
+  ];
+
+  for (const f of transformersFiles) {
+    try {
+      console.log(`Downloading ${path.basename(f.dest)}...`);
+      await downloadFile(f.url, f.dest);
+    } catch (e) {
+      console.warn(`Failed ${f.url}: ${e.message}`);
+    }
+  }
+
+  // Xenova/whisper-tiny Model & Tokenizer files for Offline STT (Kannada & English)
+  console.log('\n--------------------------------------------------');
+  console.log('[4/4] Downloading Whisper-tiny ONNX offline models...');
+  console.log('--------------------------------------------------');
+  const whisperBaseUrl = 'https://huggingface.co/Xenova/whisper-tiny/resolve/main/';
+  const whisperModelDir = path.join(baseDir, 'models', 'Xenova', 'whisper-tiny');
+  const whisperFiles = [
+    'config.json',
+    'generation_config.json',
+    'preprocessor_config.json',
+    'tokenizer.json',
+    'tokenizer_config.json',
+    'vocab.json',
+    'merges.txt',
+    'normalizer.json',
+    'added_tokens.json',
+    'special_tokens_map.json',
+    'quant_config.json',
+    'onnx/encoder_model_quantized.onnx',
+    'onnx/decoder_model_merged_quantized.onnx'
+  ];
+
+  for (const relFile of whisperFiles) {
+    const url = whisperBaseUrl + relFile;
+    const dest = path.join(whisperModelDir, relFile);
+    try {
+      console.log(`Downloading whisper-tiny: ${relFile}...`);
+      await downloadFile(url, dest);
+    } catch (e) {
+      console.warn(`Failed ${url}: ${e.message}`);
+    }
+  }
+
+  console.log('\n==================================================');
+  console.log('All offline assets & models downloaded successfully!');
+  console.log('==================================================');
 }
 
 main().catch(console.error);

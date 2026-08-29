@@ -1,6 +1,6 @@
 {
   "name": "kannadanudiwindows",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Kannada Nudi Editor desktop app for Windows",
   "main": "main.js",
   "homepage": "https://codegres.com",
@@ -62,6 +62,7 @@
       "artifactName": "${productName}-Portable-${version}.${ext}"
     },
     "appx": {
+      "backgroundColor": "transparent",
       "applicationId": "KannadaNudiEditor",
       "identityName": "Codegres.KannadaNudi-Editor",
       "publisher": "CN=8E441733-851D-4788-B164-6E5BAA080617",

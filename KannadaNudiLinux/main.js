@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, session } = require('electron');
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
@@ -12,6 +12,7 @@ const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
   '.wasm': 'application/wasm',
+  '.onnx': 'application/octet-stream',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -155,6 +156,17 @@ if (!gotTheLock) {
 
   app.whenReady().then(async () => {
     try {
+      session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+        if (permission === 'media' || permission === 'microphone') {
+          return callback(true);
+        }
+        callback(false);
+      });
+
+      session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
+        return permission === 'media' || permission === 'microphone';
+      });
+
       const port = await startServer(47123);
       mainWindow = createWindow(port);
     } catch (err) {
