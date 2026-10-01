@@ -56,6 +56,8 @@ function detectUnpackedBuild(distDir) {
 
 async function buildDebianPackage() {
   const linuxDir = __dirname;
+  const pkg = JSON.parse(fs.readFileSync(path.join(linuxDir, 'package.json'), 'utf8'));
+  const version = pkg.version || '1.0.1';
   const distDir = path.join(linuxDir, 'dist');
   const detected = detectUnpackedBuild(distDir);
 
@@ -68,7 +70,7 @@ async function buildDebianPackage() {
 
   const { unpackedDir, arch } = detected;
   const tempDir = path.join(distDir, 'temp-deb');
-  const debOutput = path.join(distDir, `kannadanudi_1.0.0_${arch}.deb`);
+  const debOutput = path.join(distDir, `kannadanudi_${version}_${arch}.deb`);
 
   console.log(`Packaging Ubuntu / Debian (.deb) release for ${arch} (from dist/${path.basename(unpackedDir)})...`);
 
@@ -153,7 +155,7 @@ StartupWMClass=kannadanudilinux
   const installedSizeKb = Math.ceil(totalBytes / 1024);
 
   const controlContent = `Package: kannadanudi
-Version: 1.0.0
+Version: ${version}
 Section: utils
 Priority: optional
 Architecture: ${arch}

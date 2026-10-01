@@ -2,3 +2,5 @@ node_modules/
 dist/
 app/
 icon.iconset/
+.DS_Store
+*.log

@@ -35,12 +35,13 @@ function removeDirRecursive(dir) {
   }
 }
 
-console.log('====================================================');
-console.log('  Packaging Kannada Nudi Web into macOS Application ');
-console.log('====================================================');
+console.log('======================================================');
+console.log('    Packaging Kannada Nudi Web into macOS App (DMG)   ');
+console.log('======================================================');
 
 console.log('\n[1/3] Publishing .NET Blazor WebAssembly project in Release mode...');
 try {
+  removeDirRecursive(WEB_PUBLISH_DIR);
   const publishCmd = `dotnet publish "${WEB_CSPROJ}" -c Release -o "${WEB_PUBLISH_DIR}"`;
   console.log(`> ${publishCmd}`);
   execSync(publishCmd, { stdio: 'inherit', cwd: WEB_DIR });
@@ -71,9 +72,11 @@ const essentialFiles = [
   path.join(MAC_WWWROOT, 'lib', 'bootstrap-icons', 'bootstrap-icons.min.css'),
   path.join(MAC_WWWROOT, 'lib', 'katex', 'katex.min.css'),
   path.join(MAC_WWWROOT, 'lib', 'katex', 'katex.min.js'),
+  path.join(MAC_WWWROOT, 'lib', 'quill', 'quill.js'),
   path.join(MAC_WWWROOT, 'lib', 'docshift', 'docshift.min.js'),
   path.join(MAC_WWWROOT, 'lib', 'mammoth', 'mammoth.browser.min.js'),
   path.join(MAC_WWWROOT, 'fonts', 'SmartNudi1-Regular_0.ttf'),
+  path.join(MAC_WWWROOT, 'fonts', 'NotoSansKannada-Regular.ttf'),
   path.join(MAC_WWWROOT, 'fonts', 'Poppins-Regular.ttf')
 ];
 
@@ -86,7 +89,7 @@ for (const file of essentialFiles) {
 }
 
 if (allPassed) {
-  console.log('\n[SUCCESS] Kannada Nudi Web packaged successfully with all offline assets!');
+  console.log('\n[SUCCESS] Kannada Nudi Web packaged successfully with all offline assets for macOS!');
 } else {
   console.warn('\n[COMPLETED WITH WARNINGS] Some expected files were not found.');
 }

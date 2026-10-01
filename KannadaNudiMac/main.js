@@ -1,7 +1,27 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, shell, session, protocol, net } = require('electron');
 const path = require('path');
-const http = require('http');
 const fs = require('fs');
+const { pathToFileURL } = require('url');
+
+// The editor is served from a custom scheme rather than a loopback HTTP server.
+// A listening socket would require the com.apple.security.network.server sandbox
+// entitlement, which App Review rejects for an app that only reads its own files.
+// Must be declared before the app is ready.
+const APP_SCHEME = 'app';
+const APP_ORIGIN = `${APP_SCHEME}://kannadanudi`;
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: APP_SCHEME,
+    privileges: {
+      standard: true,      // real origin, so relative URLs and history routing work
+      secure: true,        // treated as a secure context (required by Blazor)
+      supportFetchAPI: true, // Blazor fetches its .wasm/.dll assets
+      stream: true,
+      corsEnabled: true,
+    },
+  },
+]);
 
 const WWWROOT = path.join(__dirname, 'app', 'wwwroot');
 
@@ -12,12 +32,14 @@ const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
   '.wasm': 'application/wasm',
+  '.onnx': 'application/octet-stream',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.icns': 'image/x-icns',
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf',
@@ -33,95 +55,158 @@ const MIME_TYPES = {
   '.webmanifest': 'application/manifest+json',
 };
 
-let httpServer = null;
+let mainWindow = null;
 
-function startServer(preferredPort = 47123) {
-  return new Promise((resolve, reject) => {
-    const server = http.createServer((req, res) => {
-      try {
-        const cleanUrl = req.url.split('?')[0].split('#')[0];
-        let relativePath = decodeURIComponent(cleanUrl);
-        if (relativePath.startsWith('/')) {
-          relativePath = relativePath.slice(1);
-        }
+function resolveAssetPath(requestUrl) {
+  // Returns an absolute path inside WWWROOT, or null if the request escapes it.
+  const { pathname } = new URL(requestUrl);
+  let relativePath = decodeURIComponent(pathname);
+  if (relativePath.startsWith('/')) {
+    relativePath = relativePath.slice(1);
+  }
 
-        let filePath = path.join(WWWROOT, relativePath);
+  let filePath = path.normalize(path.join(WWWROOT, relativePath));
 
-        // Security check: prevent path traversal
-        if (!filePath.startsWith(WWWROOT)) {
-          res.writeHead(403);
-          res.end('Forbidden');
-          return;
-        }
+  // Security check: prevent path traversal
+  if (filePath !== WWWROOT && !filePath.startsWith(WWWROOT + path.sep)) {
+    return null;
+  }
 
-        // If directory or empty, serve index.html
-        if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
-          filePath = path.join(filePath, 'index.html');
-        }
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+    filePath = path.join(filePath, 'index.html');
+  }
 
-        // If file exists, serve it
-        if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-          const ext = path.extname(filePath).toLowerCase();
-          const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-          res.writeHead(200, {
-            'Content-Type': contentType,
-            'Access-Control-Allow-Origin': '*',
-            'Cache-Control': 'no-cache',
-          });
-          fs.createReadStream(filePath).pipe(res);
-          return;
-        }
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    return filePath;
+  }
 
-        // SPA Fallback: for Blazor client-side routing, serve index.html
-        const indexPath = path.join(WWWROOT, 'index.html');
-        if (fs.existsSync(indexPath)) {
-          res.writeHead(200, {
-            'Content-Type': 'text/html; charset=utf-8',
-            'Access-Control-Allow-Origin': '*',
-          });
-          fs.createReadStream(indexPath).pipe(res);
-          return;
-        }
-
-        res.writeHead(404);
-        res.end('Not Found');
-      } catch (err) {
-        res.writeHead(500);
-        res.end('Server Error: ' + err.message);
-      }
-    });
-
-    server.listen(preferredPort, '127.0.0.1', () => {
-      const port = server.address().port;
-      httpServer = server;
-      console.log(`Kannada Nudi Local Server running on http://127.0.0.1:${port}`);
-      resolve(port);
-    });
-
-    server.on('error', (err) => {
-      if (err.code === 'EADDRINUSE' && preferredPort !== 0) {
-        console.warn(`Port ${preferredPort} is in use, attempting ephemeral port...`);
-        server.listen(0, '127.0.0.1', () => {
-          const port = server.address().port;
-          httpServer = server;
-          console.log(`Kannada Nudi Local Server running on http://127.0.0.1:${port}`);
-          resolve(port);
-        });
-      } else {
-        reject(err);
-      }
-    });
-  });
+  // SPA fallback: Blazor does its own client-side routing
+  const indexPath = path.join(WWWROOT, 'index.html');
+  return fs.existsSync(indexPath) ? indexPath : null;
 }
 
-function createWindow(port) {
+function registerAppProtocol() {
+  protocol.handle(APP_SCHEME, async (request) => {
+    let filePath;
+    try {
+      filePath = resolveAssetPath(request.url);
+    } catch (err) {
+      return new Response('Bad Request', { status: 400 });
+    }
+
+    if (!filePath) {
+      return new Response('Not Found', { status: 404 });
+    }
+
+    const response = await net.fetch(pathToFileURL(filePath).toString());
+    // Content-Type is set explicitly: WebAssembly.instantiateStreaming rejects
+    // anything that is not application/wasm, and file URLs do not always carry it.
+    const ext = path.extname(filePath).toLowerCase();
+    const headers = new Headers(response.headers);
+    headers.set('Content-Type', MIME_TYPES[ext] || 'application/octet-stream');
+    return new Response(response.body, {
+      status: response.status,
+      headers,
+    });
+  });
+
+  console.log(`Kannada Nudi serving ${WWWROOT} at ${APP_ORIGIN}/`);
+}
+
+function setupNativeMenu() {
+  const isMac = process.platform === 'darwin';
+
+  const template = [
+    ...(isMac
+      ? [
+          {
+            label: 'Kannada Nudi',
+            submenu: [
+              { role: 'about', label: 'About Kannada Nudi' },
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide', label: 'Hide Kannada Nudi' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit', label: 'Quit Kannada Nudi' },
+            ],
+          },
+        ]
+      : []),
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+      ],
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+      ],
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(isMac
+          ? [
+              { type: 'separator' },
+              { role: 'front' },
+              { type: 'separator' },
+              { role: 'window' },
+            ]
+          : [{ role: 'close' }]),
+      ],
+    },
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Website & Documentation',
+          click: async () => {
+            await shell.openExternal('https://codegres.com');
+          },
+        },
+      ],
+    },
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
+function createWindow() {
+  const iconPath = fs.existsSync(path.join(__dirname, 'icon.icns'))
+    ? path.join(__dirname, 'icon.icns')
+    : path.join(__dirname, 'icon.png');
+
   const win = new BrowserWindow({
     width: 1280,
     height: 850,
     minWidth: 800,
     minHeight: 600,
     title: 'Kannada Nudi Editor',
-    icon: path.join(__dirname, 'icon.png'),
+    icon: iconPath,
+    show: false,
+    backgroundColor: '#ffffff',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -129,11 +214,23 @@ function createWindow(port) {
     },
   });
 
-  win.loadURL(`http://127.0.0.1:${port}/`);
+  win.once('ready-to-show', () => {
+    win.show();
+  });
+
+  win.loadURL(`${APP_ORIGIN}/`);
 
   win.webContents.setWindowOpenHandler(({ url }) => {
-    require('electron').shell.openExternal(url);
+    shell.openExternal(url);
     return { action: 'deny' };
+  });
+
+  win.on('closed', () => {
+    // Drop the reference: a closed BrowserWindow stays truthy but every method on
+    // it throws "Object has been destroyed".
+    if (mainWindow === win) {
+      mainWindow = null;
+    }
   });
 
   return win;
@@ -144,29 +241,49 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  let mainWindow = null;
-
   app.on('second-instance', () => {
-    if (mainWindow) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
+    } else {
+      mainWindow = createWindow();
     }
   });
 
   app.whenReady().then(async () => {
     try {
-      const port = await startServer(47123);
-      mainWindow = createWindow(port);
+      session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+        if (permission === 'media' || permission === 'microphone') {
+          return callback(true);
+        }
+        callback(false);
+      });
+
+      session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
+        return permission === 'media' || permission === 'microphone';
+      });
+
+      setupNativeMenu();
+      registerAppProtocol();
+      mainWindow = createWindow();
     } catch (err) {
       console.error('Failed to start application:', err);
       app.quit();
     }
   });
 
-  app.on('window-all-closed', () => {
-    if (httpServer) {
-      httpServer.close();
+  app.on('activate', () => {
+    // On macOS, re-create or focus window when the dock icon is clicked
+    if (BrowserWindow.getAllWindows().length === 0) {
+      mainWindow = createWindow();
+    } else if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.show();
+      mainWindow.focus();
     }
+  });
+
+  app.on('window-all-closed', () => {
+    // On macOS, keep app active in dock until user explicitly Cmd+Q
     if (process.platform !== 'darwin') {
       app.quit();
     }

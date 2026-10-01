@@ -1,0 +1,78 @@
+{
+  "name": "kannadanudiwindows",
+  "version": "1.0.2",
+  "description": "Kannada Nudi Editor desktop app for Windows",
+  "main": "main.js",
+  "homepage": "https://codegres.com",
+  "scripts": {
+    "start": "electron .",
+    "package": "node package-app.js",
+    "dist:unpacked": "npm run package && electron-builder --win --dir",
+    "dist:nsis": "npm run package && electron-builder --win nsis",
+    "dist:portable": "npm run package && electron-builder --win portable",
+    "dist:appx": "npm run package && electron-builder --win appx",
+    "dist:store": "npm run dist:appx",
+    "dist": "npm run package && electron-builder --win nsis portable zip appx dir",
+    "build-all": "npm run dist"
+  },
+  "keywords": [
+    "kannada",
+    "nudi",
+    "editor",
+    "text-editor",
+    "desktop",
+    "windows",
+    "exe",
+    "appx",
+    "msix"
+  ],
+  "author": {
+    "name": "Codegres",
+    "email": "contact@codegres.com"
+  },
+  "license": "ISC",
+  "build": {
+    "appId": "com.codegres.kannadanudi",
+    "productName": "KannadaNudi",
+    "files": [
+      "main.js",
+      "app/**/*",
+      "icon.ico",
+      "icon.png"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable",
+        "zip",
+        "dir"
+      ],
+      "icon": "icon.ico",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Kannada Nudi - Editor",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "appx": {
+      "backgroundColor": "transparent",
+      "applicationId": "KannadaNudiEditor",
+      "identityName": "Codegres.KannadaNudi-Editor",
+      "publisher": "CN=8E441733-851D-4788-B164-6E5BAA080617",
+      "publisherDisplayName": "Codegres",
+      "displayName": "Kannada Nudi - Editor",
+      "artifactName": "${productName}-${version}-Store.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  }
+}
