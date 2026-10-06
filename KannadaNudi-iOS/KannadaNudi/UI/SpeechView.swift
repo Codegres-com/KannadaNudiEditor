@@ -150,7 +150,6 @@ struct SpeechView: View {
                             .font(.system(size: 12, weight: .bold))
                             .tracking(1.0)
                             .foregroundColor(.white.opacity(0.8))
-
                         }
                         .padding(.top, 24)
                         .padding(.bottom, 40)
