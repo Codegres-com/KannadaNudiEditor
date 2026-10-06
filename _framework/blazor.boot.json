@@ -1,15 +1,15 @@
 {
   "mainAssemblyName": "KannadaNudiWeb",
   "resources": {
-    "hash": "sha256-mHSHfKokuNyGYSu0wQTSU6msHquUQXS84oXRak3ymM8=",
+    "hash": "sha256-dU8zRb5nDUdfJVcjJ6K05uZBHxRRn1sIDAKPGgejSkQ=",
     "jsModuleNative": {
-      "dotnet.native.js": "sha256-dexsp+9ih2C28zVhNnPXUbkz2QCq7lHpkyDcmaLl7NQ="
+      "dotnet.native.js": "sha256-9NoXeVUo4WNrEqrjAp/y3Yc8NmDcymQkzMGOIbIpGio="
     },
     "jsModuleRuntime": {
-      "dotnet.runtime.js": "sha256-Iz92tEdLDz6hULg8toBVTeVi4QRnFEbFBy3lo3dbmEw="
+      "dotnet.runtime.js": "sha256-qzVt86q0GKgDNek5+WFBz2hU8jGxI86YJeZmNGXj/qM="
     },
     "wasmNative": {
-      "dotnet.native.wasm": "sha256-u1TlK1IA8S0kJgWTC6wzigrzwKe2XeA6BKUgMGM2UBQ="
+      "dotnet.native.wasm": "sha256-f6b8OMzPxZicfBuJQC7pY0XrqnffvHX76rqLeGpL7oI="
     },
     "icu": {
       "icudt_CJK.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -32,24 +32,24 @@
       "Microsoft.Extensions.Primitives.wasm": "sha256-Bi1hyBMWneH/ByWbqT/pNe0B7I/NQFklzD2g3Whdqlk=",
       "Microsoft.JSInterop.wasm": "sha256-9Vj+DgdU6CeanQio+8MNKXJwNwoAljjUEOsk6yJlIY4=",
       "Microsoft.JSInterop.WebAssembly.wasm": "sha256-Px6z5DU/gBGylV4ob9sdcAVH4KKxpByP7WNTn+lZUro=",
-      "System.Collections.Concurrent.wasm": "sha256-Q/BaOZYgX6wmatxndGI35QAfHkGGaJf96JIiyuUe2Rw=",
-      "System.Collections.wasm": "sha256-nlz3mdNHg+nwShMakUoHhfFurDEUBpEKNi3a9fEeaZ8=",
-      "System.ComponentModel.wasm": "sha256-BvBbG53sOmK3wvNFVDKdV2Kmp3Qxs4Xh41fYqkxNjMM=",
-      "System.Console.wasm": "sha256-+0WG3YbHyEqWL+YeJGEM6FIP7lJs9fQPreurTtbWqwk=",
-      "System.Diagnostics.DiagnosticSource.wasm": "sha256-7QZ/WAYzaspRcjRwkQ5qTOO1iNa+gZAbMInnIh3Hs18=",
-      "System.Linq.wasm": "sha256-SRoDbpLbc1g4vhYmbkLqySexsDW4NvseMIjU03oG/oI=",
-      "System.Memory.wasm": "sha256-zsuuvkVB9PtOZP62SxYlUp8Fo7UevQ0hx3+HGFcxdVM=",
-      "System.Net.Http.wasm": "sha256-VpnwpOz0pR1a5p/yrTN6AkbRjOELYjryzp0gh2y/DJE=",
-      "System.Net.Primitives.wasm": "sha256-wAzxL7EnP7l+7FOv9w0m7ZnRzIA99h4yul46lBvRYro=",
-      "System.Private.Uri.wasm": "sha256-dFaXxy1fpXoXKo5sAGCsuyQYODaRwQUFtyzhf/921HY=",
-      "System.Runtime.InteropServices.JavaScript.wasm": "sha256-4LspZngXNwQ/iEt+999AwiihLHTXjUpbwRQsvulWO2U=",
-      "System.Runtime.wasm": "sha256-2KVPYL1BfsQEgWLDdtENFYTWb8imMESV0BKKuEf94Ic=",
-      "System.Text.Encodings.Web.wasm": "sha256-DJoo8t84Zgjx+qQ4rnrSpqdipvZkAoC083qkX+YJtfg=",
-      "System.Text.Json.wasm": "sha256-FTs1IcDq0PexrQqjV8Xo9yxQ4WIyrOAcFtLG5/iGs0o=",
-      "System.Text.RegularExpressions.wasm": "sha256-bVJUiRwlVZPZ38N32iT7uC4ngicAQyTGNnDx42e+HiQ=",
-      "System.Threading.wasm": "sha256-ip7e9wGPqhK+rFq0NOlQiUNntT6Cf9XQdoM38XVOSLU=",
-      "System.Private.CoreLib.wasm": "sha256-SASDhsvTI9lXPcaT0WHffFJ+zGixeaclJ7ZzwrJabJA=",
-      "KannadaNudiWeb.wasm": "sha256-3FVX3kzEKWgCLDlS8jMyvazmLzYQ6Eq8QGg8sPwCMv4="
+      "System.Collections.Concurrent.wasm": "sha256-gt7Q+w8i4IylB/D0+xag3hvsn6jTglUdSxgmeMU+8c4=",
+      "System.Collections.wasm": "sha256-F2RMIcHcH73dZsik4rySz3xRVy9SGSwDgqDRvCOktig=",
+      "System.ComponentModel.wasm": "sha256-PsFt2WhF4EluopSKxqrMexySPGfDxERH8Ejn7UJa8T8=",
+      "System.Console.wasm": "sha256-AMXjgiwmJZNBflxdsfwBQNOk1OGD61R6qmPHL5dykho=",
+      "System.Diagnostics.DiagnosticSource.wasm": "sha256-xDtdm9hM6DtsL6EngW3KL7MyUEdf5vi0KBjDdQexaMg=",
+      "System.Linq.wasm": "sha256-1XyhxDOSvm4/hXqJ8zhPKfxwVM4cA6125nVG823TS7Y=",
+      "System.Memory.wasm": "sha256-TsB+1bCNsXpQNbd7NsxTA9qufJkwg5PG8rOnDZCHXlA=",
+      "System.Net.Http.wasm": "sha256-wPyUhpiEJ6EydqNupotYwDhXiarUXLzK7c8InKDWQJs=",
+      "System.Net.Primitives.wasm": "sha256-kwUKMCcHFdIZfQRqqxqVgbc0u9torgO9Cy4lg+wYWCE=",
+      "System.Private.Uri.wasm": "sha256-/X9JfNFVUQzm58d0Hr8vaFAUzByL/iedDXqfw70HvMg=",
+      "System.Runtime.InteropServices.JavaScript.wasm": "sha256-oRCN88yd3lBXRfAmWROwi3OJecv7kjkEDCqOInSy6lY=",
+      "System.Runtime.wasm": "sha256-+DQvTa//oxEpZT41kcxfZIBV7mJ6bTrBvq2hqG6JsdY=",
+      "System.Text.Encodings.Web.wasm": "sha256-4StEWGrvA12mJBYZv6OGLaTaRPl7TQ2ahSX9uEkJBig=",
+      "System.Text.Json.wasm": "sha256-Ne5IwVpw1GijMzqb8EUoKxEoisTPQexRhTtYxmlL1Kg=",
+      "System.Text.RegularExpressions.wasm": "sha256-ULPx5QVJkX8tngQbkD/ys+yZUBMKO3E74z6xdVMKUyU=",
+      "System.Threading.wasm": "sha256-zGIIRANtbTqRuKifP0Qc8DJ6hRIOrZrCZMz2V7Ft448=",
+      "System.Private.CoreLib.wasm": "sha256-hMbFAXw+3tWx5LbQIHo2RhBfgj8JkkTs6u34FH5WIzQ=",
+      "KannadaNudiWeb.wasm": "sha256-2o2i5BwXaL7Bbm+Yc309dckNZ4icXsFpLDIo26mGSMY="
     }
   },
   "cacheBootResources": true,
