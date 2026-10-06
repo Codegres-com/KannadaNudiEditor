@@ -161,7 +161,9 @@ class TransliterationEngine {
 
     private func isKannadaConsonant(_ c: Character) -> Bool {
         // Range for Kannada Consonants: 0x0C95 (ka) to 0x0CB9 (ha)
-        guard let scalar = c.unicodeScalars.first else { return false }
+        // A Swift Character is a whole grapheme ("ಕಿ", "ಕ್"), so inspect its LAST scalar,
+        // matching Android where the preceding char is a single UTF-16 unit.
+        guard let scalar = c.unicodeScalars.last else { return false }
         let code = scalar.value
         return (code >= 0x0C95 && code <= 0x0CB9)
     }
@@ -186,7 +188,7 @@ class TransliterationEngine {
                         let replacement = baseChar + matra
 
                         buffer.append(key)
-                        return TransliterationResult(text: replacement, backspaceCount: previousOutput.count)
+                        return TransliterationResult(text: replacement, backspaceCount: previousOutput.unicodeScalars.count)
                     }
                 }
             }
@@ -196,7 +198,7 @@ class TransliterationEngine {
                 let previousOutput = recalculateOutput(bufferKeys: buffer)
                 buffer = ""
                 buffer.append(combinedKey)
-                return TransliterationResult(text: val, backspaceCount: previousOutput.count)
+                return TransliterationResult(text: val, backspaceCount: previousOutput.unicodeScalars.count)
             }
         }
 
@@ -237,7 +239,8 @@ class TransliterationEngine {
 
     private func isBarahaConsonant(_ k: String) -> Bool {
         guard let value = barahaMap[k] else { return false }
-        return value.hasSuffix("\u{0CCD}")
+        // Compare scalars: String.hasSuffix is grapheme-aware and never matches a lone halant
+        return value.unicodeScalars.last == "\u{0CCD}"
     }
 }
 

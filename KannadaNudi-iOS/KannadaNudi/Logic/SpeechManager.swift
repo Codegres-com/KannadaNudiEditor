@@ -1,340 +1,337 @@
 import Foundation
 import AVFoundation
-import Speech
 import Combine
-import UIKit
-import WebKit
+import Metal
+import whisper
 
-class SpeechManager: NSObject, ObservableObject, SFSpeechRecognizerDelegate {
+/// Kannada speech-to-text, fully on device, using whisper.cpp with a Kannada fine-tuned Whisper model.
+///
+/// Apple's Speech framework and WebKit's SpeechRecognition do not support Kannada, and general
+/// Whisper models mostly write Kannada speech in Devanagari. The model used here
+/// (vasista22/whisper-kannada-base, IIT Madras, Apache 2.0, q5_1 ggml, ~60 MB) is trained on Kannada
+/// and scored 2.2% character error rate in testing, vs 22-25% for general Whisper models up to 626 MB.
+/// The model is bundled in the app, so voice typing works offline from first launch.
+/// whisper.cpp runs on the CPU of every iPhone, so no Core ML / Neural Engine compilation is needed.
+@MainActor
+final class SpeechManager: ObservableObject {
     @Published var transcription: String = ""
     @Published var isListening: Bool = false
+    /// True while the model is loading or the final chunk is being transcribed
+    @Published var isBusy: Bool = false
+    /// Progress text to show while busy (preparing...)
+    @Published var status: String?
     @Published var error: String?
-    
-    private var speechRecognizer: SFSpeechRecognizer?
-    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    private var recognitionTask: SFSpeechRecognitionTask?
-    private let audioEngine = AVAudioEngine()
-    private var webSpeechManager: SpeechWebViewManager?
-    
-    override init() {
-        super.init()
-    }
-    
+
+    private static let sampleRate = 16_000
+    // Whisper decodes 30s windows; commit text and start a new window before that
+    private static let maxWindowSamples = 20 * sampleRate
+
+    private var engine: WhisperEngine?
+    private let recorder = MicRecorder()
+    private var loopTask: Task<Void, Never>?
+    private var language = "kn"
+    /// Text already finalized (existing text before this session + completed windows)
+    private var committedText = ""
+
+    // MARK: - Public API
+
     func start(localeIdentifier: String = "kn-IN") {
-        // 1. Request Microphone Permission sequentially first
-        AVAudioSession.sharedInstance().requestRecordPermission { micGranted in
-            guard micGranted else {
-                DispatchQueue.main.async {
-                    self.error = "Microphone access denied."
-                    self.isListening = false
-                }
+        guard !isListening, !isBusy else { return }
+        error = nil
+        language = String(localeIdentifier.prefix(2))
+
+        Task {
+            guard await Self.requestMicrophonePermission() else {
+                error = "Microphone access denied. Enable it in Settings > Privacy > Microphone."
                 return
             }
-            
-            // Check if native speech recognition supports this locale
-            let supported = SFSpeechRecognizer.supportedLocales().map { $0.identifier }
-            if !supported.contains(localeIdentifier) {
-                DispatchQueue.main.async {
-                    self.startWebSpeech(localeIdentifier: localeIdentifier)
-                }
-                return
-            }
-            
-            // 2. Request Speech Recognition permission second
-            SFSpeechRecognizer.requestAuthorization { authStatus in
-                DispatchQueue.main.async {
-                    switch authStatus {
-                    case .authorized:
-                        self.performStart(localeIdentifier: localeIdentifier)
-                    case .denied, .restricted, .notDetermined:
-                        self.startWebSpeech(localeIdentifier: localeIdentifier)
-                    @unknown default:
-                        break
-                    }
-                }
-            }
-        }
-    }
-    
-    private func performStart(localeIdentifier: String) {
-        // 1. Establish playAndRecord Audio Session category and activate FIRST
-        // This ensures the hardware inputNode is safely instantiated and accessible without crashing
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers, .defaultToSpeaker])
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            self.startWebSpeech(localeIdentifier: localeIdentifier)
-            return
-        }
-        
-        // 2. Now call reset safely (accesses inputNode to removeTap)
-        reset()
-        
-        // 3. Initialize SFSpeechRecognizer for the dynamic locale
-        let recognizer = SFSpeechRecognizer(locale: Locale(identifier: localeIdentifier))
-        
-        if recognizer == nil || !recognizer!.isAvailable {
-            self.startWebSpeech(localeIdentifier: localeIdentifier)
-            return
-        }
-        
-        guard let speechRecognizer = recognizer else { return }
-        speechRecognizer.delegate = self
-        self.speechRecognizer = speechRecognizer
-        
-        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
-        guard let recognitionRequest = recognitionRequest else { return }
-        recognitionRequest.shouldReportPartialResults = true
-        
-        let inputNode = audioEngine.inputNode
-        
-        recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { result, error in
-            if let result = result {
-                DispatchQueue.main.async {
-                    self.transcription = result.bestTranscription.formattedString
-                }
-            }
-            
-            if let error = error {
-                DispatchQueue.main.async {
-                    self.error = "Recognition error: \(error.localizedDescription)"
-                }
-                self.stop()
-            } else if result?.isFinal == true {
-                self.stop()
-            }
-        }
-        
-        // --- THE FIX ---
-        // Get the audio format from the input node.
-        // We check both outputFormat and inputFormat to ensure a valid sample rate/channel count is used.
-        var recordingFormat = inputNode.outputFormat(forBus: 0)
-        if recordingFormat.sampleRate == 0 || recordingFormat.channelCount == 0 {
-            recordingFormat = inputNode.inputFormat(forBus: 0)
-        }
-        
-        // CRITICAL CHECK: If the sample rate is invalid (0), the engine will crash.
-        guard recordingFormat.sampleRate > 0 && recordingFormat.channelCount > 0 else {
-            self.error = "Invalid audio format detected. Please try again."
-            self.stop()
-            return
-        }
-        
-        inputNode.removeTap(onBus: 0) // Ensure fresh tap
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
-            self.recognitionRequest?.append(buffer)
-        }
-        
-        audioEngine.prepare()
-        
-        do {
-            try audioEngine.start()
-            isListening = true
-        } catch {
-            self.startWebSpeech(localeIdentifier: localeIdentifier)
-        }
-    }
-    
-    private func startWebSpeech(localeIdentifier: String) {
-        if self.webSpeechManager == nil {
-            self.webSpeechManager = SpeechWebViewManager()
-            
-            self.webSpeechManager?.onStart = { [weak self] in
-                self?.isListening = true
-                self?.error = nil
-            }
-            
-            self.webSpeechManager?.onResult = { [weak self] text in
-                self?.transcription = text
-            }
-            
-            self.webSpeechManager?.onError = { [weak self] errMsg in
-                self?.error = "Web Speech Error: \(errMsg)"
-                self?.stop()
-            }
-            
-            self.webSpeechManager?.onEnd = { [weak self] in
-                self?.isListening = false
-            }
-        }
-        
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.duckOthers, .defaultToSpeaker])
-            try audioSession.setActive(true)
-        } catch {
-            self.error = "Audio Session Error: \(error.localizedDescription)"
-            return
-        }
-        
-        self.isListening = true
-        self.webSpeechManager?.start(locale: localeIdentifier)
-    }
-    
-    func stop() {
-        DispatchQueue.main.async {
-            self.isListening = false
-            self.audioEngine.stop()
-            self.audioEngine.inputNode.removeTap(onBus: 0)
-            self.recognitionRequest?.endAudio()
-            self.recognitionRequest = nil
-            self.recognitionTask?.cancel()
-            self.recognitionTask = nil
-            
-            self.webSpeechManager?.stop()
-            
-            // Deactivate and reset audio session cleanly to mute/unmute and release mic indicator
+
             do {
-                let audioSession = AVAudioSession.sharedInstance()
-                try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
-                try audioSession.setCategory(.ambient, mode: .default, options: [])
-                try audioSession.setActive(true)
+                let engine = try await loadEngine()
+                try recorder.start()
+                committedText = transcription
+                isListening = true
+                loopTask = Task { await transcribeLoop(engine) }
             } catch {
-                print("Failed to release audio session cleanly: \(error)")
+                isBusy = false
+                status = nil
+                self.error = "Voice typing failed: \(error.localizedDescription)"
+                recorder.stop()
             }
         }
     }
-    
-    private func reset() {
-        audioEngine.stop()
-        audioEngine.inputNode.removeTap(onBus: 0)
-        recognitionTask?.cancel()
-        recognitionTask = nil
+
+    func stop() {
+        guard isListening else { return }
+        isListening = false
+        recorder.stop()
+
+        guard let engine else { return }
+        let samples = recorder.samples
+        let pending = loopTask
+        loopTask = nil
+        guard samples.count > Self.sampleRate / 2 else { return }
+
+        // Final pass once the live loop has finished its current pass
+        isBusy = true
+        Task {
+            await pending?.value
+            let text = await transcribe(engine, samples)
+            transcription = Self.join(committedText, text)
+            committedText = transcription
+            isBusy = false
+        }
     }
-    
+
     func clear() {
         transcription = ""
+        committedText = ""
+    }
+
+    // MARK: - Model
+
+    private func loadEngine() async throws -> WhisperEngine {
+        if let engine { return engine }
+
+        isBusy = true
+        defer {
+            isBusy = false
+            status = nil
+        }
+
+        Self.removeOldDownloadedModels()
+        guard let path = Bundle.main.path(forResource: "ggml-kn-base", ofType: "bin") else {
+            throw SpeechError.modelLoadFailed
+        }
+        setStatus(english: "Preparing voice typing...", kannada: "ಧ್ವನಿ ಟೈಪಿಂಗ್ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...")
+        let engine = try await Task.detached(priority: .userInitiated) {
+            try WhisperEngine(modelPath: path)
+        }.value
+        self.engine = engine
+        return engine
+    }
+
+    /// Earlier builds downloaded voice models (~216 MB WhisperKit in Documents, ~60 MB in
+    /// Application Support); the model is now bundled, so free that space
+    private static func removeOldDownloadedModels() {
+        let fileManager = FileManager.default
+        if let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+            try? fileManager.removeItem(at: documents.appendingPathComponent("huggingface"))
+        }
+        if let support = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+            try? fileManager.removeItem(at: support.appendingPathComponent("VoiceModels"))
+        }
+        UserDefaults.standard.removeObject(forKey: "whisperModelFolder")
+    }
+
+    private func setStatus(english: String, kannada: String) {
+        status = LanguageManager.shared.getString(english: english, kannada: kannada)
+    }
+
+    // MARK: - Transcription
+
+    private func transcribeLoop(_ engine: WhisperEngine) async {
+        var lastCount = 0
+        while isListening && !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            guard isListening else { break }
+
+            let samples = recorder.samples
+            // Wait for at least 0.5s of new audio
+            guard samples.count - lastCount >= Self.sampleRate / 2 else { continue }
+            lastCount = samples.count
+
+            let text = await transcribe(engine, samples)
+            guard isListening else { break }
+            transcription = Self.join(committedText, text)
+
+            // Window nearly full: finalize it and keep only audio that arrived since the snapshot
+            if samples.count >= Self.maxWindowSamples {
+                committedText = transcription
+                recorder.purge(keepingLast: max(0, recorder.samples.count - samples.count))
+                lastCount = 0
+            }
+        }
+    }
+
+    private func transcribe(_ engine: WhisperEngine, _ samples: [Float]) async -> String {
+        // Whisper hallucinates text on silence, so skip windows without speech
+        guard let peak = samples.lazy.map(abs).max(), peak > 0.02 else { return "" }
+        // Surround speech with 1s of silence: when audio stops right at the last word (as it does
+        // during live updates) the model invents extra words. Padding cut test-clip errors from 12.5% to 2.2%.
+        let silence = [Float](repeating: 0, count: Self.sampleRate)
+        let text = await engine.transcribe(silence + samples + silence, language: language)
+        // Remove non-speech annotations such as "[BLANK_AUDIO]" or "(music)"
+        return text
+            .replacingOccurrences(of: #"\[[^\]]*\]|\([^)]*\)"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func join(_ base: String, _ addition: String) -> String {
+        guard !addition.isEmpty else { return base }
+        guard !base.isEmpty else { return addition }
+        let separator = (base.last?.isWhitespace ?? true) ? "" : " "
+        return base + separator + addition
+    }
+
+    private static func requestMicrophonePermission() async -> Bool {
+        await withCheckedContinuation { continuation in
+            AVAudioSession.sharedInstance().requestRecordPermission { continuation.resume(returning: $0) }
+        }
     }
 }
 
-class SpeechWebViewManager: NSObject, WKScriptMessageHandler, WKUIDelegate {
-    private var webView: WKWebView!
-    var onStart: (() -> Void)?
-    var onResult: ((String) -> Void)?
-    var onError: ((String) -> Void)?
-    var onEnd: (() -> Void)?
-    
+enum SpeechError: LocalizedError {
+    case modelLoadFailed
+    case microphoneUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .modelLoadFailed: return "Could not load the voice model."
+        case .microphoneUnavailable: return "Microphone is not available."
+        }
+    }
+}
+
+// MARK: - whisper.cpp
+
+/// Wrapper over a whisper.cpp context; the actor serializes all calls into the C library
+actor WhisperEngine {
+    private let context: OpaquePointer
+
+    init(modelPath: String) throws {
+        var params = whisper_context_default_params()
+        // The GPU path is only reliable on A14 and newer (Apple7 GPU family); A12/A13 (iPhone XR/11) use the CPU
+        let useGPU = MTLCreateSystemDefaultDevice()?.supportsFamily(.apple7) ?? false
+        params.use_gpu = useGPU
+        params.flash_attn = useGPU
+        guard let context = whisper_init_from_file_with_params(modelPath, params) else {
+            throw SpeechError.modelLoadFailed
+        }
+        self.context = context
+    }
+
     deinit {
-        let viewToRemove = webView
-        DispatchQueue.main.async {
-            viewToRemove?.removeFromSuperview()
-        }
+        whisper_free(context)
     }
-    
-    override init() {
-        super.init()
-        let config = WKWebViewConfiguration()
-        let controller = WKUserContentController()
-        controller.add(self, name: "speechCallback")
-        config.userContentController = controller
-        config.mediaTypesRequiringUserActionForPlayback = []
-        
-        webView = WKWebView(frame: .zero, configuration: config)
-        webView.uiDelegate = self
-        
-        let html = """
-        <!DOCTYPE html>
-        <html>
-        <head><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-        <body>
-        <script>
-            var recognition;
-            function startRecognition(locale) {
-                try {
-                    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    if (!window.SpeechRecognition) {
-                        window.webkit.messageHandlers.speechCallback.postMessage(JSON.stringify({type: "error", message: "Web Speech API not supported"}));
-                        return;
-                    }
-                    if (recognition) { recognition.stop(); }
-                    recognition = new window.SpeechRecognition();
-                    recognition.continuous = true;
-                    recognition.interimResults = true;
-                    recognition.lang = locale;
-                    
-                    recognition.onstart = function() {
-                        window.webkit.messageHandlers.speechCallback.postMessage(JSON.stringify({type: "start"}));
-                    };
-                    recognition.onresult = function(event) {
-                        var transcription = "";
-                        for (var i = 0; i < event.results.length; ++i) {
-                            transcription += event.results[i][0].transcript;
-                        }
-                        window.webkit.messageHandlers.speechCallback.postMessage(JSON.stringify({type: "result", text: transcription}));
-                    };
-                    recognition.onerror = function(event) {
-                        window.webkit.messageHandlers.speechCallback.postMessage(JSON.stringify({type: "error", message: event.error}));
-                    };
-                    recognition.onend = function() {
-                        window.webkit.messageHandlers.speechCallback.postMessage(JSON.stringify({type: "end"}));
-                    };
-                    recognition.start();
-                } catch (e) {
-                    window.webkit.messageHandlers.speechCallback.postMessage(JSON.stringify({type: "error", message: e.message}));
-                }
-            }
-            function stopRecognition() {
-                if (recognition) { recognition.stop(); }
-            }
-        </script>
-        </body>
-        </html>
-        """
-        webView.loadHTMLString(html, baseURL: URL(string: "https://nudiweb.com"))
-        
-        // Add to active window hierarchy on main thread to unlock background mic capture and permission checks
-        DispatchQueue.main.async {
-            if let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) {
-                self.webView.frame = CGRect(x: 0, y: 0, width: 1, height: 1)
-                self.webView.isHidden = true
-                keyWindow.addSubview(self.webView)
+
+    func transcribe(_ samples: [Float], language: String) -> String {
+        // Beam search, as whisper-cli uses by default; greedy decoding invented whole sentences in testing
+        var params = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH)
+        params.n_threads = Int32(max(1, min(4, ProcessInfo.processInfo.activeProcessorCount - 1)))
+        params.translate = false
+        params.no_context = true
+        // Settings match whisper-cli (-l kn -nt), which scored 9.8% CER on the Kannada test clips.
+        // Do not enable suppress_nst: with it this model invents news-style sentences.
+        params.no_timestamps = true
+        params.print_special = false
+        params.print_progress = false
+        params.print_realtime = false
+        params.print_timestamps = false
+        params.suppress_blank = true
+
+        let result: Int32 = language.withCString { languagePointer in
+            params.language = languagePointer
+            return samples.withUnsafeBufferPointer { buffer in
+                whisper_full(context, params, buffer.baseAddress, Int32(buffer.count))
             }
         }
+        guard result == 0 else { return "" }
+
+        var text = ""
+        for segment in 0..<whisper_full_n_segments(context) {
+            if let segmentText = whisper_full_get_segment_text(context, segment) {
+                text += String(cString: segmentText)
+            }
+        }
+        return text
     }
-    
-    func start(locale: String) {
-        webView.evaluateJavaScript("startRecognition('\(locale)')", completionHandler: nil)
+}
+
+// MARK: - Microphone
+
+/// Records the microphone as 16 kHz mono Float32 samples, the format Whisper expects
+final class MicRecorder {
+    private let engine = AVAudioEngine()
+    private let lock = NSLock()
+    private var buffer: [Float] = []
+    private var converter: AVAudioConverter?
+    private let targetFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+
+    var samples: [Float] {
+        lock.lock()
+        defer { lock.unlock() }
+        return buffer
     }
-    
+
+    func start() throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .duckOthers])
+        try session.setActive(true, options: .notifyOthersOnDeactivation)
+
+        let input = engine.inputNode
+        let inputFormat = input.outputFormat(forBus: 0)
+        guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0 else {
+            throw SpeechError.microphoneUnavailable
+        }
+        converter = AVAudioConverter(from: inputFormat, to: targetFormat)
+
+        lock.lock()
+        buffer = []
+        lock.unlock()
+
+        input.removeTap(onBus: 0)
+        input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] pcm, _ in
+            self?.append(pcm)
+        }
+        engine.prepare()
+        try engine.start()
+    }
+
     func stop() {
-        webView.evaluateJavaScript("stopRecognition()", completionHandler: nil)
-    }
-    
-    // MARK: - WKScriptMessageHandler
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let bodyString = message.body as? String,
-              let data = bodyString.data(using: .utf8) else { return }
-        
-        struct CallbackMessage: Codable {
-            let type: String
-            let text: String?
-            let message: String?
-        }
-        
+        engine.stop()
+        engine.inputNode.removeTap(onBus: 0)
+        // Release the mic so the recording indicator goes away and other audio resumes
         do {
-            let decoder = JSONDecoder()
-            let msg = try decoder.decode(CallbackMessage.self, from: data)
-            switch msg.type {
-            case "start":
-                onStart?()
-            case "result":
-                if let t = msg.text { onResult?(t) }
-            case "error":
-                if let e = msg.message { onError?(e) }
-            case "end":
-                onEnd?()
-            default:
-                break
-            }
+            let session = AVAudioSession.sharedInstance()
+            try session.setActive(false, options: .notifyOthersOnDeactivation)
+            try session.setCategory(.ambient, mode: .default, options: [])
         } catch {
-            print("Failed to decode speech callback: \(error)")
+            print("Failed to release audio session cleanly: \(error)")
         }
     }
-    
-    // MARK: - WKUIDelegate for Media Capture Permission
-    @available(iOS 15.0, *)
-    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
-        decisionHandler(.grant)
+
+    /// Drops recorded audio, keeping only the last `keep` samples
+    func purge(keepingLast keep: Int) {
+        lock.lock()
+        if buffer.count > keep {
+            buffer.removeFirst(buffer.count - keep)
+        }
+        lock.unlock()
+    }
+
+    private func append(_ pcm: AVAudioPCMBuffer) {
+        guard let converter else { return }
+        let ratio = targetFormat.sampleRate / pcm.format.sampleRate
+        let capacity = AVAudioFrameCount(Double(pcm.frameLength) * ratio) + 32
+        guard let output = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return }
+
+        var consumed = false
+        var conversionError: NSError?
+        converter.convert(to: output, error: &conversionError) { _, status in
+            if consumed {
+                status.pointee = .noDataNow
+                return nil
+            }
+            consumed = true
+            status.pointee = .haveData
+            return pcm
+        }
+        guard conversionError == nil, let channel = output.floatChannelData else { return }
+
+        let converted = UnsafeBufferPointer(start: channel[0], count: Int(output.frameLength))
+        lock.lock()
+        buffer.append(contentsOf: converted)
+        lock.unlock()
     }
 }

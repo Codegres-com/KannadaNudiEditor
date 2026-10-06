@@ -9,7 +9,13 @@ struct SpeechView: View {
     // In-App Custom Keyboard Integration
     @State private var showInAppKeyboard = false
     @StateObject private var keyboardViewModel = KeyboardViewModel()
-    private var engine = TransliterationEngine()
+    // Must be @State so the same engine (and its Nudi layout + compose buffer) survives
+    // SwiftUI re-renders. A plain `var` is recreated on every render and falls back to Baraha.
+    @State private var engine: TransliterationEngine = {
+        let e = TransliterationEngine()
+        e.setLayout(.nudi)
+        return e
+    }()
     
     // UI Feedback States
     @State private var showToast = false
@@ -24,8 +30,9 @@ struct SpeechView: View {
                 VStack(spacing: 0) {
                     Color(red: 255/255, green: 205/255, blue: 0/255)
                         .frame(height: geo.size.height * 0.55)
+                    // Fill the rest so the white mic labels never sit on a white gap
                     Color(red: 187/255, green: 0/255, blue: 30/255)
-                        .frame(height: geo.size.height * 0.45)
+                        .frame(maxHeight: .infinity)
                 }
                 .ignoresSafeArea()
             }
@@ -112,8 +119,20 @@ struct SpeechView: View {
                         VStack(spacing: 12) {
                             Button(action: toggleListening) {
                                 PulsingMicCircle(isListening: speechManager.isListening)
+                                    .overlay(
+                                        Group {
+                                            if speechManager.isBusy {
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                                    .scaleEffect(1.6)
+                                                    .frame(width: 120, height: 120)
+                                                    .background(Circle().fill(Color.black.opacity(0.35)))
+                                            }
+                                        }
+                                    )
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .disabled(speechManager.isBusy)
                             
                             Text(speechManager.isListening ? 
                                  langManager.getString(english: "SPEAK NOW", kannada: "ನಡು ಮಾತನಾಡುತ್ತಿದೆ") :
@@ -123,18 +142,21 @@ struct SpeechView: View {
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             
-                            Text(speechManager.isListening ?
+                            Text(speechManager.status ?? (speechManager.isListening ?
                                  langManager.getString(english: "LISTENING...", kannada: "ಆಲಿಸಲಾಗುತ್ತಿದೆ...") :
-                                 langManager.getString(english: "TAP TO SPEAK", kannada: "ಮಾತನಾಡಿ")
+                                 langManager.getString(english: "TAP TO SPEAK", kannada: "ಮಾತನಾಡಿ"))
                             )
+                            .multilineTextAlignment(.center)
                             .font(.system(size: 12, weight: .bold))
                             .tracking(1.0)
                             .foregroundColor(.white.opacity(0.8))
+
                         }
                         .padding(.top, 24)
                         .padding(.bottom, 40)
                     }
                 }
+                .scrollDismissesKeyboard(.immediately)
                 
                 // In-App Custom Keyboard Overlay Drawer
                 if showInAppKeyboard {
@@ -181,10 +203,6 @@ struct SpeechView: View {
                 .ignoresSafeArea(.keyboard)
             }
         }
-        .onTapGesture {
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            showInAppKeyboard = false
-        }
         .onAppear {
             engine.setLayout(.nudi)
             keyboardViewModel.currentLayout = .nudi
@@ -213,7 +231,6 @@ struct SpeechView: View {
             isInputFocused = false
             showInAppKeyboard = false
             speechManager.start(localeIdentifier: "kn-IN")
-            triggerToast(langManager.getString(english: "Listening...", kannada: "ಆಲಿಸಲಾಗುತ್ತಿದೆ..."))
         }
     }
     
@@ -277,15 +294,14 @@ struct SpeechView: View {
             let result = engine.getTransliteration(key: char, lastCommittedChar: lastChar)
             
             if result.backspaceCount > 0 {
-                speechManager.transcription = String(speechManager.transcription.dropLast(result.backspaceCount))
+                deleteScalars(result.backspaceCount)
             }
             speechManager.transcription += result.text
             
         case .backspace:
             engine.clearBuffer()
-            if !speechManager.transcription.isEmpty {
-                speechManager.transcription.removeLast()
-            }
+            // Delete one code point (e.g. "ಕಿ" -> "ಕ"), same as Android
+            deleteScalars(1)
             
         case .space:
             engine.clearBuffer()
@@ -312,6 +328,12 @@ struct SpeechView: View {
         case .shift:
             break
         }
+    }
+    
+    private func deleteScalars(_ count: Int) {
+        var scalars = speechManager.transcription.unicodeScalars
+        scalars.removeLast(min(count, scalars.count))
+        speechManager.transcription = String(scalars)
     }
     
     private func handleCandidateSelection(_ candidate: String) {
