@@ -23,7 +23,7 @@
     {
         <div class="toolbar-group">
             <label class="toolbar-label">Layout:</label>
-            <select class="form-select" style="width:auto; display:inline-block;" @onchange="OnLayoutChange">
+            <select class="form-select" style="width:auto; display:inline-block;" value="@TransliterationService.CurrentLayout" @onchange="OnLayoutChange">
                 <option value="Nudi">Nudi/KGP</option>
                 <option value="Baraha">Baraha (Phonetic)</option>
             </select>
@@ -69,6 +69,14 @@
          {
              <InputFile OnChange="LoadDocument" class="file-input-hidden" id="fileUpload" accept=".txt, .docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain" />
              <label for="fileUpload" class="btn btn-secondary"><span class="bi bi-folder2-open"></span> Open</label>
+         }
+         @if (globalKeyboard != null)
+         {
+             <button id="btn-global-mode" class="btn @(globalKeyboard.Enabled ? "btn-warning" : "btn-outline-secondary")"
+                     disabled="@(!globalKeyboard.Available)" @onclick="ToggleGlobalKeyboard"
+                     title="Type Kannada in any application (browser, Word, Excel, ...). Shortcut: F9">
+                 <span class="bi bi-globe"></span> Global mode: @(globalKeyboard.Enabled ? "ON" : "OFF")
+             </button>
          }
     </div>
 </div>
@@ -343,6 +351,13 @@
             await JSRuntime.InvokeVoidAsync("quillInterop.registerKeyInterceptor", objRef);
             await JSRuntime.InvokeVoidAsync("quillInterop.setKannadaMode", IsKannadaInput);
 
+            // F9 hotkey; returns the Global mode state only inside the Windows desktop app
+            globalKeyboard = await JSRuntime.InvokeAsync<GlobalKeyboardState?>("nudiGlobalKeyboard.init", objRef);
+            if (globalKeyboard != null)
+            {
+                ApplyGlobalKeyboardLayout(globalKeyboard);
+            }
+
             // Initialize Speech service (set DotNetRef)
             await SpeechService.InitializeAsync();
 
@@ -366,12 +381,55 @@
         await JSRuntime.InvokeVoidAsync("quillInterop.setKannadaMode", IsKannadaInput);
     }
 
-    private void OnLayoutChange(ChangeEventArgs args)
+    private async Task OnLayoutChange(ChangeEventArgs args)
     {
         if (args.Value != null && Enum.TryParse<KeyboardLayout>(args.Value.ToString(), out var layout))
         {
             TransliterationService.SetLayout(layout);
+            // Global mode uses the same layout as the editor
+            await JSRuntime.InvokeVoidAsync("nudiGlobalKeyboard.setLayout", layout.ToString());
         }
+    }
+
+    // ---- Global (Direct Type) keyboard: Windows desktop app only ----
+
+    public class GlobalKeyboardState
+    {
+        public bool Available { get; set; }
+        public bool Enabled { get; set; }
+        public string Layout { get; set; } = nameof(KeyboardLayout.Nudi);
+    }
+
+    GlobalKeyboardState? globalKeyboard;
+
+    private async Task ToggleGlobalKeyboard()
+    {
+        await JSRuntime.InvokeVoidAsync("nudiGlobalKeyboard.toggle");
+    }
+
+    [JSInvokable]
+    public void OnGlobalKeyboardState(GlobalKeyboardState state)
+    {
+        globalKeyboard = state;
+        ApplyGlobalKeyboardLayout(state);
+        StateHasChanged();
+    }
+
+    private void ApplyGlobalKeyboardLayout(GlobalKeyboardState state)
+    {
+        if (Enum.TryParse<KeyboardLayout>(state.Layout, out var layout) && layout != TransliterationService.CurrentLayout)
+        {
+            TransliterationService.SetLayout(layout);
+        }
+    }
+
+    // F9 only reaches the page when no system-wide hook consumed it (browser, or the desktop
+    // helper is unavailable): toggle the editor's own Kannada / English input.
+    [JSInvokable]
+    public async Task OnF9Pressed()
+    {
+        await OnInputModeChange(new ChangeEventArgs { Value = !IsKannadaInput });
+        StateHasChanged();
     }
 
     [JSInvokable]
