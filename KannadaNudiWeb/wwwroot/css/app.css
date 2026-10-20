@@ -79,22 +79,30 @@ a, .btn-link {
 /* Startup loader: Nudi logo with Blazor's download progress */
 .app-loader {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.5rem;
     background: #fff;
+    z-index: 3000;
 }
 
+/* Logo sits at the exact centre of the screen; the progress bar hangs below it. */
 .app-loader img {
+    display: block;
     width: 7rem;
     height: 7rem;
     animation: app-loader-pulse 1.6s ease-in-out infinite;
 }
 
 .app-loader-bar {
+    position: absolute;
+    top: calc(50% + 5rem);
+    left: 50%;
+    margin-left: -5rem;
     width: 10rem;
     height: 4px;
     border-radius: 2px;
