@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nudiweb",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "KannadaNudiWeb/KannadaNudiWeb.csproj", "--urls", "http://localhost:5187"],
+      "port": 5187
+    }
+  ]
+}

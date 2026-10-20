@@ -34,7 +34,10 @@ jobs:
 
       # SPA routing support
       - name: Copy index.html to 404.html
-        run: cp release/wwwroot/index.html release/wwwroot/404.html
+        run: |
+          cp release/wwwroot/index.html release/wwwroot/404.html
+          # Keep the 404 copy out of search results (canonical/noindex)
+          sed -i 's|<meta name="robots" content="[^"]*" />|<meta name="robots" content="noindex" />|' release/wwwroot/404.html
 
       # Disable Jekyll
       - name: Add .nojekyll

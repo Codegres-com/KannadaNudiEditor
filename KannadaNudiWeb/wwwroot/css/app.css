@@ -142,3 +142,23 @@ a, .btn-link {
         -webkit-overflow-scrolling: touch;
     }
 }
+
+/* Static, crawlable intro inside #app shown while Blazor loads (replaced on startup) */
+.seo-intro {
+    max-width: 44rem;
+    margin: 4rem auto 2rem auto;
+    padding: 0 1rem;
+    color: #444;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.seo-intro h1 {
+    font-size: 1.5rem;
+    color: #1b6ec2;
+}
+
+.seo-intro h2 {
+    font-size: 1.1rem;
+    margin-top: 1.25rem;
+}
