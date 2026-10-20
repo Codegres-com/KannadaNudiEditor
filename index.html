@@ -122,7 +122,7 @@
             {
               "@type": "Question",
               "name": "Is Kannada Nudi Editor free?",
-              "acceptedAnswer": { "@type": "Answer", "text": "Yes. The web editor is free and open source, and runs entirely in your browser with no installation." }
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. The web editor is free and runs entirely in your browser with no installation." }
             }
           ]
         }
@@ -131,6 +131,7 @@
     </script>
 
     <base href="/" />
+    <link rel="preload" href="nudi_logo.png" as="image" />
     <link href="css/fonts.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="KannadaNudiWeb.styles.css" rel="stylesheet" />
@@ -160,7 +161,7 @@
 <body>
     <div id="app">
         <div class="app-loader" role="status" aria-label="Loading Kannada Nudi Editor">
-            <div class="app-spinner"></div>
+            <img class="app-loader-logo" src="nudi_logo.png" alt="Kannada Nudi" width="112" height="112" />
         </div>
     </div>
 
