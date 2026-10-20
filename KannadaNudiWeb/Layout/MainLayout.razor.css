@@ -90,3 +90,16 @@ main {
         font-size: 1.5rem;
     }
 }
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 1rem;
+    font-size: 0.8rem;
+    margin-top: 0.15rem;
+}
+
+.footer-links a {
+    color: #6c757d;
+}
