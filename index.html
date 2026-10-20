@@ -4,13 +4,104 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Kannada Nudi Editor – Free Online Kannada Typing | ಕನ್ನಡ ನುಡಿ</title>
+    <meta name="description" content="Type in Kannada online for free with Kannada Nudi Editor. Nudi/KGP and Baraha phonetic keyboards, Kannada speech-to-text, Nudi ASCII ↔ Unicode conversion and DOCX export – right in your browser, no install needed." />
+    <meta name="keywords" content="Kannada typing, Kannada editor, Nudi, Nudi online, Kannada Nudi, Baraha, KGP keyboard, Kannada keyboard, Kannada speech to text, Nudi to Unicode, Unicode to Nudi, ASCII to Unicode Kannada, ಕನ್ನಡ ಟೈಪಿಂಗ್, ಕನ್ನಡ ನುಡಿ" />
+    <meta name="author" content="Codegres" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#1b6ec2" />
+    <link rel="canonical" href="https://nudiweb.com/" />
+
+    <!-- Open Graph / social previews -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kannada Nudi Editor" />
+    <meta property="og:url" content="https://nudiweb.com/" />
+    <meta property="og:title" content="Kannada Nudi Editor – Free Online Kannada Typing" />
+    <meta property="og:description" content="Type Kannada in your browser with Nudi/KGP and Baraha keyboards, speech-to-text and Nudi ↔ Unicode conversion. Free, no install." />
+    <meta property="og:image" content="https://nudiweb.com/nudi_logo.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Kannada Nudi Editor logo" />
+    <meta property="og:locale" content="en_IN" />
+    <meta property="og:locale:alternate" content="kn_IN" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Kannada Nudi Editor – Free Online Kannada Typing" />
+    <meta name="twitter:description" content="Type Kannada in your browser with Nudi/KGP and Baraha keyboards, speech-to-text and Nudi ↔ Unicode conversion." />
+    <meta name="twitter:image" content="https://nudiweb.com/nudi_logo.png" />
+
+    <!-- PWA / mobile -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Kannada Nudi" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <title>Kannada Nudi Editor (Web)</title>
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/png" href="Seal_of_Karnataka.png" />
     <link rel="apple-touch-icon" href="nudi_logo.png" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://nudiweb.com/#app",
+          "name": "Kannada Nudi Editor",
+          "alternateName": ["Nudi Web", "ಕನ್ನಡ ನುಡಿ", "Kannada Nudi Online"],
+          "url": "https://nudiweb.com/",
+          "description": "Free online Kannada text editor with Nudi/KGP and Baraha phonetic keyboards, Kannada and English speech-to-text, Nudi ASCII to Unicode conversion and Word (DOCX) import/export.",
+          "applicationCategory": "UtilitiesApplication",
+          "operatingSystem": "Any (web browser)",
+          "browserRequirements": "Requires JavaScript and WebAssembly",
+          "inLanguage": ["kn", "en"],
+          "isAccessibleForFree": true,
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+          "image": "https://nudiweb.com/nudi_logo.png",
+          "featureList": [
+            "Kannada typing with Nudi / KGP keyboard layout",
+            "Baraha-style phonetic (English to Kannada) typing",
+            "Kannada and English speech-to-text",
+            "Nudi ASCII to Unicode and Unicode to Nudi ASCII conversion",
+            "Open and save Microsoft Word (DOCX) documents",
+            "Tables, formulas and rich text formatting"
+          ],
+          "publisher": { "@id": "https://codegres.com/#org" }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://codegres.com/#org",
+          "name": "Codegres",
+          "url": "https://codegres.com/",
+          "email": "contact@codegres.com"
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "How do I type in Kannada online?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Open nudiweb.com, make sure the input mode is set to KAN, and start typing. Choose the Nudi/KGP layout if you know the Nudi keyboard, or Baraha (phonetic) to type Kannada using English letters. Press F9 to switch between Kannada and English." }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I convert old Nudi (ASCII) text to Unicode?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. Kannada Nudi Editor converts Nudi ASCII text to Unicode and Unicode back to Nudi ASCII, so legacy documents can be read and shared anywhere." }
+            },
+            {
+              "@type": "Question",
+              "name": "Does Kannada Nudi Editor support Kannada speech-to-text?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. In supported browsers you can dictate in Kannada or English and the text is typed into the editor." }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Kannada Nudi Editor free?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. The web editor is free and open source, and runs entirely in your browser with no installation." }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
     <base href="/" />
     <link href="css/fonts.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
@@ -44,6 +135,25 @@
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
         <div class="loading-progress-text">Loading...</div>
+
+        <!-- Crawlable description shown while the editor loads; Blazor replaces #app once started. -->
+        <main class="seo-intro">
+            <h1>Kannada Nudi Editor <span lang="kn">(ಕನ್ನಡ ನುಡಿ)</span></h1>
+            <p>Free online Kannada typing tool. Write Kannada in your browser using the familiar Nudi / KGP keyboard or Baraha-style phonetic typing – no installation needed.</p>
+            <p lang="kn">ಉಚಿತ ಆನ್‌ಲೈನ್ ಕನ್ನಡ ಟೈಪಿಂಗ್ ತಂತ್ರಾಂಶ. ನುಡಿ / ಕೆಜಿಪಿ ಅಥವಾ ಬರಹ ಮಾದರಿಯ ಕೀಲಿಮಣೆಯಲ್ಲಿ ನೇರವಾಗಿ ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲೇ ಕನ್ನಡ ಬರೆಯಿರಿ.</p>
+            <h2>Features</h2>
+            <ul>
+                <li><strong>Nudi / KGP keyboard</strong> – the standard Kannada layout used by Karnataka government offices.</li>
+                <li><strong>Baraha phonetic typing</strong> – type Kannada using English letters.</li>
+                <li><strong>Kannada speech-to-text</strong> – dictate in Kannada or English.</li>
+                <li><strong>Nudi ASCII ↔ Unicode conversion</strong> – convert legacy Nudi documents to Unicode and back.</li>
+                <li><strong>Word (DOCX) support</strong> – open and save .docx files with tables, formulas and formatting.</li>
+                <li><strong>F9 toggle</strong> – switch instantly between Kannada and English input.</li>
+            </ul>
+            <h2>Also available offline</h2>
+            <p>Kannada Nudi Editor is available for Windows, macOS, Linux, Android and iOS. Developed by <a href="https://codegres.com/">Codegres</a>, guided by <a href="https://kagapa.com/">KAGAPA</a>.</p>
+            <noscript><p><strong>Please enable JavaScript to use the Kannada Nudi Editor.</strong></p></noscript>
+        </main>
     </div>
 
     <script src="_framework/blazor.webassembly.js"></script>
