@@ -288,6 +288,4 @@ if (!gotTheLock) {
       app.quit();
     }
   });
-
-
 }

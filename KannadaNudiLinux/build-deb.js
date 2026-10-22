@@ -33,21 +33,46 @@ function writeArArchive(outFile, members) {
   fs.writeFileSync(outFile, result);
 }
 
+// electron-builder names the unpacked output directory after the build
+// architecture (e.g. "linux-unpacked" for x64, "linux-arm64-unpacked" for
+// arm64, "linux-ia32-unpacked" for ia32). Hardcoding "linux-unpacked" meant
+// this script silently produced a broken/mislabeled .deb (or failed outright)
+// on any non-x64 host. Detect whichever one actually exists instead.
+const ARCH_FOLDERS = [
+  { dir: 'linux-unpacked', arch: 'amd64' },
+  { dir: 'linux-arm64-unpacked', arch: 'arm64' },
+  { dir: 'linux-ia32-unpacked', arch: 'i386' },
+];
+
+function detectUnpackedBuild(distDir) {
+  for (const { dir, arch } of ARCH_FOLDERS) {
+    const fullPath = path.join(distDir, dir);
+    if (fs.existsSync(fullPath)) {
+      return { unpackedDir: fullPath, arch };
+    }
+  }
+  return null;
+}
+
 async function buildDebianPackage() {
   const linuxDir = __dirname;
   const pkg = JSON.parse(fs.readFileSync(path.join(linuxDir, 'package.json'), 'utf8'));
   const version = pkg.version || '1.0.1';
-  const unpackedDir = path.join(linuxDir, 'dist', 'linux-unpacked');
   const distDir = path.join(linuxDir, 'dist');
-  const tempDir = path.join(distDir, 'temp-deb');
-  const debOutput = path.join(distDir, `kannadanudi_${version}_amd64.deb`);
+  const detected = detectUnpackedBuild(distDir);
 
-  if (!fs.existsSync(unpackedDir)) {
-    console.error('Error: dist/linux-unpacked does not exist. Run electron-builder first.');
+  if (!detected) {
+    console.error(
+      `Error: no unpacked build found in dist/ (looked for ${ARCH_FOLDERS.map(a => a.dir).join(', ')}). Run electron-builder first.`
+    );
     process.exit(1);
   }
 
-  console.log('Packaging Ubuntu / Debian (.deb) release...');
+  const { unpackedDir, arch } = detected;
+  const tempDir = path.join(distDir, 'temp-deb');
+  const debOutput = path.join(distDir, `kannadanudi_${version}_${arch}.deb`);
+
+  console.log(`Packaging Ubuntu / Debian (.deb) release for ${arch} (from dist/${path.basename(unpackedDir)})...`);
 
   if (fs.existsSync(tempDir)) {
     fs.rmSync(tempDir, { recursive: true, force: true });
@@ -133,7 +158,7 @@ StartupWMClass=kannadanudilinux
 Version: ${version}
 Section: utils
 Priority: optional
-Architecture: amd64
+Architecture: ${arch}
 Installed-Size: ${installedSizeKb}
 Maintainer: Codegres <contact@codegres.com>
 Homepage: https://codegres.com

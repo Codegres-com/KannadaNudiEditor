@@ -28,7 +28,7 @@ platforms:
 
 apps:
   kannadanudi:
-    command: kannadanudilinux
+    command: kannadanudilinux --no-sandbox
     extensions: [gnome]
     plugs:
       - desktop
