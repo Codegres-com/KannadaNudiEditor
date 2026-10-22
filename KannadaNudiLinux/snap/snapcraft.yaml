@@ -28,7 +28,7 @@ platforms:
 
 apps:
   kannadanudi:
-    command: kannadanudilinux --no-sandbox --ozone-platform=x11
+    command: bin/launch.sh
     extensions: [gnome]
     plugs:
       - desktop
@@ -57,3 +57,9 @@ parts:
       - libasound2t64
     prime:
       - -chrome-sandbox
+
+  launcher:
+    plugin: dump
+    source: snap/local
+    organize:
+      launch.sh: bin/launch.sh
