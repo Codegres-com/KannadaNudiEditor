@@ -4,8 +4,7 @@
 // handles F9 itself, so Kannada can be typed in any application. `window.nudiDesktop` is
 // exposed by that app's preload script. In a normal browser only this page can be controlled,
 // so F9 toggles the editor's KAN / ENG input mode instead.
-// In the Linux app the same bridge toggles the Kannada IBus input source (see
-// KannadaNudiLinux/global-keyboard.js); F9 there still toggles the editor only.
+// The Linux app (KannadaNudiLinux) does the same through an IBus input method engine.
 window.nudiGlobalKeyboard = {
     _bridge: function () {
         return window.nudiDesktop && window.nudiDesktop.globalKeyboard;
