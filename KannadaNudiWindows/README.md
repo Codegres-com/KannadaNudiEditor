@@ -32,6 +32,18 @@ Run `dist\win-unpacked\KannadaNudi.exe` directly.
 
 ---
 
+## ⌨️ Global Mode (Direct Type) — Kannada in any application
+
+Press **F9** anywhere (browser, Word, Excel, Notepad, ...) to switch the whole system between Kannada and English, using the same Nudi / Baraha key bindings as the editor. It can also be toggled with the **Global mode** button next to Save / Open, or from the tray icon.
+
+- A small sticky toast in the bottom-right corner always shows **Global Mode: English** or **Global Mode: Kannada** while the app is running (it pulses when F9 switches it, and is click-through so it never blocks other windows).
+- The layout (Nudi or Baraha) is shared with the editor's layout selector and remembered.
+- Closing the editor window keeps the app in the tray so F9 keeps working; use **Quit** in the tray menu to exit. Enable **Start with Windows** in the tray menu to have it always available.
+- Implemented by `GlobalKeyboard/` (a small .NET 8 helper with a low-level keyboard hook), which `npm run package` publishes into `app/global-keyboard/`.
+- Windows does not let a normal app type into windows running as Administrator, so Global mode has no effect there.
+
+---
+
 ## 🛠️ Building from Source
 
 ### Prerequisites

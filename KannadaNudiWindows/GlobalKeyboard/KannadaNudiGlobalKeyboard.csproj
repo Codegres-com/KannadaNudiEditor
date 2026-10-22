@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    System-wide (Global / Direct Type) Kannada keyboard for Windows.
+    Spawned and controlled by the Electron shell (main.js); published by package-app.js
+    into app/global-keyboard as a self-contained single-file exe.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>KannadaNudiGlobalKeyboard</AssemblyName>
+    <RootNamespace>KannadaNudiGlobalKeyboard</RootNamespace>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Same Nudi / Baraha bindings as the editor -->
+    <Compile Include="..\..\KannadaNudiWeb\Services\KannadaKeyboardEngine.cs" Link="KannadaKeyboardEngine.cs" />
+  </ItemGroup>
+
+</Project>

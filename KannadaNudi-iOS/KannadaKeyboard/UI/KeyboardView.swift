@@ -21,7 +21,7 @@ enum KeyboardMode {
 
 class KeyboardViewModel: ObservableObject {
     @Published var isShifted = false
-    @Published var currentLayout: KeyboardLayout = .baraha
+    @Published var currentLayout: KeyboardLayout = .nudi // Default to Nudi, same as Android
     @Published var currentMode: KeyboardMode = .alpha
     @Published var candidates: [String] = []
 

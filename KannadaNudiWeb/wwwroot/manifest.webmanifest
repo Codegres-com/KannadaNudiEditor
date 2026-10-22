@@ -1,0 +1,15 @@
+{
+  "name": "Kannada Nudi Editor",
+  "short_name": "Kannada Nudi",
+  "description": "Free online Kannada typing with Nudi/KGP and Baraha keyboards, speech-to-text and Nudi ↔ Unicode conversion.",
+  "lang": "en-IN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1b6ec2",
+  "categories": ["productivity", "utilities", "education"],
+  "icons": [
+    { "src": "nudi_logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

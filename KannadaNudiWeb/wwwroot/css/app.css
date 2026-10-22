@@ -76,37 +76,35 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
-.loading-progress {
-    position: relative;
+/* Startup loader: centred Nudi logo, replaced when Blazor starts */
+.app-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    z-index: 3000;
+}
+
+.app-loader-logo {
     display: block;
-    width: 8rem;
-    height: 8rem;
-    margin: 20vh auto 1rem auto;
+    width: 7rem;
+    height: 7rem;
+    border-radius: 16px;
+    animation: app-loader-pulse 1.6s ease-in-out infinite;
 }
 
-.loading-progress circle {
-    fill: none;
-    stroke: #e0e0e0;
-    stroke-width: 0.6rem;
-    transform-origin: 50% 50%;
-    transform: rotate(-90deg);
+@keyframes app-loader-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.06); opacity: 0.8; }
 }
 
-.loading-progress circle:last-child {
-    stroke: #1b6ec2;
-    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-    transition: stroke-dasharray 0.05s ease-in-out;
-}
-
-.loading-progress-text {
-    position: absolute;
-    text-align: center;
-    font-weight: bold;
-    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
-}
-
-.loading-progress-text:after {
-    content: var(--blazor-load-percentage-text, "Loading");
+@media (prefers-reduced-motion: reduce) {
+    .app-loader-logo { animation: none; }
 }
 
 /* iOS/iPhone-specific overrides */
@@ -141,4 +139,79 @@ a, .btn-link {
     .ql-editor {
         -webkit-overflow-scrolling: touch;
     }
+}
+
+/* Shown only when JavaScript is disabled */
+.noscript-intro {
+    max-width: 44rem;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Microsoft Store suggestion (js/storePrompt.js) */
+.store-prompt {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 2000;
+    width: min(22rem, calc(100vw - 2rem));
+    padding: 1rem 1rem 0.75rem;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(1rem);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.store-prompt.show {
+    opacity: 1;
+    transform: none;
+}
+
+.store-prompt-close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    font-size: 0.7rem;
+}
+
+.store-prompt-body {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding-right: 1rem;
+}
+
+.store-prompt-body img {
+    flex-shrink: 0;
+    border-radius: 10px;
+}
+
+.store-prompt-title {
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.store-prompt-text {
+    font-size: 0.85rem;
+    color: #5b6670;
+}
+
+.store-prompt-text kbd {
+    font-size: 0.75rem;
+    padding: 0.05rem 0.3rem;
+}
+
+.store-prompt-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .store-prompt { transition: none; }
 }

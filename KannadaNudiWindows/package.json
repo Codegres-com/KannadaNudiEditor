@@ -1,6 +1,6 @@
 {
   "name": "kannadanudiwindows",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Kannada Nudi Editor desktop app for Windows",
   "main": "main.js",
   "homepage": "https://codegres.com",
@@ -36,9 +36,14 @@
     "productName": "KannadaNudi",
     "files": [
       "main.js",
+      "global-keyboard.js",
+      "preload.js",
       "app/**/*",
       "icon.ico",
       "icon.png"
+    ],
+    "asarUnpack": [
+      "app/global-keyboard/**"
     ],
     "win": {
       "target": [

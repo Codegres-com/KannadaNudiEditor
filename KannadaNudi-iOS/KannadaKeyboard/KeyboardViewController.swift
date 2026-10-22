@@ -13,6 +13,9 @@ class KeyboardViewController: UIInputViewController {
         // Initialize Dictionary
         dictionaryLoader.loadDictionary()
 
+        // Keep engine in sync with the layout shown by the view model (Nudi by default)
+        transliterationEngine.setLayout(viewModel.currentLayout)
+
         // Create the SwiftUI view
         let keyboardView = KeyboardView(
             viewModel: viewModel,
@@ -126,7 +129,7 @@ class KeyboardViewController: UIInputViewController {
             // Find last word boundary
             // This is a naive implementation
             if let lastWord = context.components(separatedBy: CharacterSet.whitespacesAndNewlines).last {
-                for _ in 0..<lastWord.count {
+                for _ in 0..<lastWord.unicodeScalars.count {
                     proxy.deleteBackward()
                 }
                 proxy.insertText(candidate + " ")
