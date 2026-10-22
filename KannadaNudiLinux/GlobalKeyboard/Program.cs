@@ -183,12 +183,12 @@ internal static class Program
             var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
             try
             {
-                socket.SetRawSocketOption(SOL_SOCKET, SO_PASSCRED, BitConverter.GetBytes(1));
+                if (OperatingSystem.IsLinux()) socket.SetRawSocketOption(SOL_SOCKET, SO_PASSCRED, BitConverter.GetBytes(1));
                 await socket.ConnectAsync(ParseUnixEndPoint(address), cancellationToken);
                 return new SetupResult
                 {
                     ConnectionStream = new NetworkStream(socket, ownsSocket: true),
-                    UserId = geteuid().ToString(),
+                    UserId = OperatingSystem.IsLinux() ? geteuid().ToString() : "0",
                     TeardownToken = socket,
                 };
             }
@@ -232,50 +232,57 @@ internal static class Program
 
     private static MessageBuffer CreateRegisterComponentMessage()
     {
-        using var writer = _bus!.GetMessageWriter();
-        writer.WriteMethodCallHeader(IBusService, IBusPath, IBusInterface, "RegisterComponent", "v", MessageFlags.None);
+        var writer = _bus!.GetMessageWriter();
+        try
+        {
+            writer.WriteMethodCallHeader(IBusService, IBusPath, IBusInterface, "RegisterComponent", "v", MessageFlags.None);
 
-        writer.WriteSignature("(sa{sv}ssssssssavav)");
-        writer.WriteStructureStart();
-        writer.WriteString("IBusComponent");
-        WriteEmptyAttachments(writer);
-        writer.WriteString("org.freedesktop.IBus.KannadaNudi"); // name
-        writer.WriteString("Kannada Nudi Global Keyboard");    // description
-        writer.WriteString("1.0");                             // version
-        writer.WriteString("ISC");                             // license
-        writer.WriteString("Codegres <contact@codegres.com>"); // author
-        writer.WriteString("https://nudiweb.com/");            // homepage
-        writer.WriteString("");                                // exec (already running)
-        writer.WriteString("");                                // textdomain
+            writer.WriteSignature("(sa{sv}ssssssssavav)");
+            writer.WriteStructureStart();
+            writer.WriteString("IBusComponent");
+            WriteEmptyAttachments(ref writer);
+            writer.WriteString("org.freedesktop.IBus.KannadaNudi"); // name
+            writer.WriteString("Kannada Nudi Global Keyboard");    // description
+            writer.WriteString("1.0");                             // version
+            writer.WriteString("ISC");                             // license
+            writer.WriteString("Codegres <contact@codegres.com>"); // author
+            writer.WriteString("https://nudiweb.com/");            // homepage
+            writer.WriteString("");                                // exec (already running)
+            writer.WriteString("");                                // textdomain
 
-        ArrayStart observed = writer.WriteArrayStart(DBusType.Variant);
-        writer.WriteArrayEnd(observed);
+            ArrayStart observed = writer.WriteArrayStart(DBusType.Variant);
+            writer.WriteArrayEnd(observed);
 
-        ArrayStart engines = writer.WriteArrayStart(DBusType.Variant);
-        writer.WriteSignature("(sa{sv}ssssssssusssssssss)");
-        writer.WriteStructureStart();
-        writer.WriteString("IBusEngineDesc");
-        WriteEmptyAttachments(writer);
-        writer.WriteString(EngineName);                         // name
-        writer.WriteString("Kannada (Nudi)");                   // longname
-        writer.WriteString("Kannada Nudi / Baraha keyboard. F9 switches Kannada / English."); // description
-        writer.WriteString("kn");                               // language
-        writer.WriteString("ISC");                              // license
-        writer.WriteString("Codegres");                         // author
-        writer.WriteString("");                                 // icon
-        writer.WriteString("default");                          // layout: keep the current keyboard layout
-        writer.WriteUInt32(0);                                  // rank
-        writer.WriteString("");                                 // hotkeys
-        writer.WriteString("ಕ");                                // symbol
-        writer.WriteString("");                                 // setup
-        writer.WriteString("");                                 // layout_variant
-        writer.WriteString("");                                 // layout_option
-        writer.WriteString("1.0");                              // version
-        writer.WriteString("");                                 // textdomain
-        writer.WriteString("");                                 // icon_prop_key
-        writer.WriteArrayEnd(engines);
+            ArrayStart engines = writer.WriteArrayStart(DBusType.Variant);
+            writer.WriteSignature("(sa{sv}ssssssssussssssss)");
+            writer.WriteStructureStart();
+            writer.WriteString("IBusEngineDesc");
+            WriteEmptyAttachments(ref writer);
+            writer.WriteString(EngineName);                         // name
+            writer.WriteString("Kannada (Nudi)");                   // longname
+            writer.WriteString("Kannada Nudi / Baraha keyboard. F9 switches Kannada / English."); // description
+            writer.WriteString("kn");                               // language
+            writer.WriteString("ISC");                              // license
+            writer.WriteString("Codegres");                         // author
+            writer.WriteString("");                                 // icon
+            writer.WriteString("default");                          // layout: keep the current keyboard layout
+            writer.WriteUInt32(0);                                  // rank
+            writer.WriteString("");                                 // hotkeys
+            writer.WriteString("ಕ");                                // symbol
+            writer.WriteString("");                                 // setup
+            writer.WriteString("");                                 // layout_variant
+            writer.WriteString("");                                 // layout_option
+            writer.WriteString("1.0");                              // version
+            writer.WriteString("");                                 // textdomain
+            writer.WriteString("");                                 // icon_prop_key
+            writer.WriteArrayEnd(engines);
 
-        return writer.CreateMessage();
+            return writer.CreateMessage();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 
     private static async Task<string?> GetGlobalEngineAsync()
@@ -284,10 +291,17 @@ internal static class Program
         {
             return await _bus!.CallMethodAsync(CreateGetGlobalEngineMessage(), (Message m, object? _) =>
             {
-                // v -> IBusEngineDesc variant -> (s typename, a{sv}, s name, ...)
-                VariantValue value = m.GetBodyReader().ReadVariantValue();
-                while (value.Type == VariantValueType.Variant) value = value.GetVariantValue();
-                return value.GetItem(2).GetString();
+                // v -> IBusEngineDesc variant -> (s typename, a{sv}, s name, ...). Read it field by
+                // field: ReadVariantValue does not support structs with 16+ fields.
+                Reader reader = m.GetBodyReader();
+                string signature = reader.ReadSignatureAsString();
+                while (signature == "v") signature = reader.ReadSignatureAsString();
+                if (!signature.StartsWith("(s")) return null;
+                reader.AlignStruct();
+                reader.ReadString(); // "IBusEngineDesc"
+                ArrayEnd attachments = reader.ReadArrayStart(DBusType.DictEntry);
+                reader.SkipTo(attachments);
+                return reader.ReadString();
             }, null);
         }
         catch (DBusErrorReplyException)
@@ -570,39 +584,53 @@ internal static class Program
     private static void CommitText(string text)
     {
         if (_activeEnginePath == null || text.Length == 0) return;
-        using var writer = _bus!.GetMessageWriter();
-        writer.WriteSignalHeader(null, _activeEnginePath, "org.freedesktop.IBus.Engine", "CommitText", "v");
-        WriteIBusText(writer, text, underline: false);
-        _bus.TrySendMessage(writer.CreateMessage());
+        var writer = _bus!.GetMessageWriter();
+        try
+        {
+            writer.WriteSignalHeader(null, _activeEnginePath, "org.freedesktop.IBus.Engine", "CommitText", "v");
+            WriteIBusText(ref writer, text, underline: false);
+            _bus.TrySendMessage(writer.CreateMessage());
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 
     private static void UpdatePreedit()
     {
         if (_activeEnginePath == null) return;
         string text = Preedit.ToString();
-        using var writer = _bus!.GetMessageWriter();
-        writer.WriteSignalHeader(null, _activeEnginePath, "org.freedesktop.IBus.Engine", "UpdatePreeditText", "vubu");
-        WriteIBusText(writer, text, underline: true);
-        writer.WriteUInt32((uint)text.Length);        // cursor at the end
-        writer.WriteBool(text.Length > 0);           // visible
-        writer.WriteUInt32(PreeditCommit);
-        _bus.TrySendMessage(writer.CreateMessage());
+        var writer = _bus!.GetMessageWriter();
+        try
+        {
+            writer.WriteSignalHeader(null, _activeEnginePath, "org.freedesktop.IBus.Engine", "UpdatePreeditText", "vubu");
+            WriteIBusText(ref writer, text, underline: true);
+            writer.WriteUInt32((uint)text.Length);        // cursor at the end
+            writer.WriteBool(text.Length > 0);           // visible
+            writer.WriteUInt32(PreeditCommit);
+            _bus.TrySendMessage(writer.CreateMessage());
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 
     // Variant holding IBusText: ("IBusText", a{sv}, s text, v IBusAttrList)
-    private static void WriteIBusText(MessageWriter writer, string text, bool underline)
+    private static void WriteIBusText(ref MessageWriter writer, string text, bool underline)
     {
         writer.WriteSignature("(sa{sv}sv)");
         writer.WriteStructureStart();
         writer.WriteString("IBusText");
-        WriteEmptyAttachments(writer);
+        WriteEmptyAttachments(ref writer);
         writer.WriteString(text);
 
         // IBusAttrList: ("IBusAttrList", a{sv}, av attributes)
         writer.WriteSignature("(sa{sv}av)");
         writer.WriteStructureStart();
         writer.WriteString("IBusAttrList");
-        WriteEmptyAttachments(writer);
+        WriteEmptyAttachments(ref writer);
         ArrayStart attrs = writer.WriteArrayStart(DBusType.Variant);
         if (underline && text.Length > 0)
         {
@@ -610,7 +638,7 @@ internal static class Program
             writer.WriteSignature("(sa{sv}uuuu)");
             writer.WriteStructureStart();
             writer.WriteString("IBusAttribute");
-            WriteEmptyAttachments(writer);
+            WriteEmptyAttachments(ref writer);
             writer.WriteUInt32(1);
             writer.WriteUInt32(1);
             writer.WriteUInt32(0);
@@ -619,7 +647,9 @@ internal static class Program
         writer.WriteArrayEnd(attrs);
     }
 
-    private static void WriteEmptyAttachments(MessageWriter writer)
+    // Empty a{sv}. MessageWriter is a mutable ref struct: it must be passed by ref, or the bytes
+    // written here are overwritten by the caller (corrupting the message, so ibus-daemon hangs up).
+    private static void WriteEmptyAttachments(ref MessageWriter writer)
     {
         ArrayStart dict = writer.WriteDictionaryStart();
         writer.WriteDictionaryEnd(dict);
@@ -743,9 +773,16 @@ internal static class Program
             }
             else if (member == "GetAll")
             {
-                using var writer = context.CreateReplyWriter("a{sv}");
-                WriteEmptyAttachments(writer);
-                context.Reply(writer.CreateMessage());
+                var writer = context.CreateReplyWriter("a{sv}");
+                try
+                {
+                    WriteEmptyAttachments(ref writer);
+                    context.Reply(writer.CreateMessage());
+                }
+                finally
+                {
+                    writer.Dispose();
+                }
             }
             else
             {
