@@ -1,6 +1,6 @@
 {
   "name": "kannadanudilinux",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Kannada Nudi Editor desktop app for Linux / Ubuntu",
   "main": "main.js",
   "homepage": "https://codegres.com",
@@ -34,6 +34,8 @@
     "productName": "KannadaNudi",
     "files": [
       "main.js",
+      "global-keyboard.js",
+      "preload.js",
       "app/**/*",
       "icon.png"
     ],
@@ -60,6 +62,7 @@
         "x11",
         "audio-playback",
         "home",
+        "gsettings",
         "browser-support",
         "network",
         "network-bind"

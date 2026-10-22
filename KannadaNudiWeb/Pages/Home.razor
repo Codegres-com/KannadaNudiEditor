@@ -74,7 +74,7 @@
          {
              <button id="btn-global-mode" class="btn @(globalKeyboard.Enabled ? "btn-warning" : "btn-outline-secondary")"
                      disabled="@(!globalKeyboard.Available)" @onclick="ToggleGlobalKeyboard"
-                     title="Type Kannada in any application (browser, Word, Excel, ...). Shortcut: F9">
+                     title="@(globalKeyboard.Hint ?? "Type Kannada in any application (browser, Word, Excel, ...). Shortcut: F9")">
                  <span class="bi bi-globe"></span> Global mode: @(globalKeyboard.Enabled ? "ON" : "OFF")
              </button>
          }
@@ -351,7 +351,7 @@
             await JSRuntime.InvokeVoidAsync("quillInterop.registerKeyInterceptor", objRef);
             await JSRuntime.InvokeVoidAsync("quillInterop.setKannadaMode", IsKannadaInput);
 
-            // F9 hotkey; returns the Global mode state only inside the Windows desktop app
+            // F9 hotkey; returns the Global mode state only inside the Windows / Linux desktop apps
             globalKeyboard = await JSRuntime.InvokeAsync<GlobalKeyboardState?>("nudiGlobalKeyboard.init", objRef);
             if (globalKeyboard != null)
             {
@@ -391,13 +391,15 @@
         }
     }
 
-    // ---- Global (Direct Type) keyboard: Windows desktop app only ----
+    // ---- Global (Direct Type) keyboard: Windows and Linux desktop apps only ----
 
     public class GlobalKeyboardState
     {
         public bool Available { get; set; }
         public bool Enabled { get; set; }
         public string Layout { get; set; } = nameof(KeyboardLayout.Nudi);
+        // Platform-specific tooltip (Linux explains IBus / Super+Space); Windows uses the default
+        public string? Hint { get; set; }
     }
 
     GlobalKeyboardState? globalKeyboard;

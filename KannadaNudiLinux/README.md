@@ -22,6 +22,20 @@ After building, the following artifacts are generated in `dist/`:
 
 ## 🚀 Installation & Running on Ubuntu / Linux
 
+### From the Snap Store (recommended)
+```bash
+sudo snap install kannadanudi
+```
+Store page: https://snapcraft.io/kannadanudi
+
+## ⌨️ Global Mode — Kannada in any application
+
+Click **Global mode** next to Save / Open to add Kannada to GNOME's keyboard input sources (IBus `m17n:kn:kgp` for Nudi, `m17n:kn:itrans` for Baraha, following the editor's layout). Then press **Super+Space** to switch between English and Kannada in any app. Click it again to remove it.
+
+- Needs the IBus m17n engines on the host: `sudo apt install ibus-m17n` (log out and back in once after installing).
+- Windows-style F9 key hooks are impossible on Linux: Wayland and snap confinement block system-wide key capture. Inside the editor, F9 still toggles KAN / ENG.
+- Implemented in `global-keyboard.js` using `gsettings` (`org.gnome.desktop.input-sources sources`); the snap uses the `gsettings` plug.
+
 
 ### Option 1: Install Snap Package (`.snap`)
 ```bash

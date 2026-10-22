@@ -1,7 +1,8 @@
-const { app, BrowserWindow, Menu, session } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, session } = require('electron');
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
+const { GlobalKeyboard } = require('./global-keyboard');
 
 const WWWROOT = path.join(__dirname, 'app', 'wwwroot');
 
@@ -127,6 +128,7 @@ function createWindow(port) {
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -166,6 +168,19 @@ if (!gotTheLock) {
       session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
         return permission === 'media' || permission === 'microphone';
       });
+
+      // Global mode: Kannada in any application through GNOME input sources (IBus).
+      const globalKeyboard = new GlobalKeyboard();
+      ipcMain.handle('global-keyboard:get-state', () => globalKeyboard.state);
+      ipcMain.on('global-keyboard:toggle', () => globalKeyboard.toggle());
+      ipcMain.on('global-keyboard:set-layout', (_event, layout) => globalKeyboard.setLayout(layout));
+      globalKeyboard.on('state', (state) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('global-keyboard:state', state);
+        }
+      });
+      app.on('before-quit', () => globalKeyboard.stop());
+      await globalKeyboard.start();
 
       const port = await startServer(47123);
       mainWindow = createWindow(port);
