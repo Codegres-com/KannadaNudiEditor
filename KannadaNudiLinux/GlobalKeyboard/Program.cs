@@ -173,6 +173,9 @@ internal static class Program
     // own socket the kernel attaches our real credentials to everything we send.
     private sealed class IBusConnectionOptions(string address) : DBusConnectionOptions
     {
+        // Raw Linux values: SetRawSocketOption takes the native level, and .NET's
+        // SocketOptionLevel.Socket is the Windows value (0xFFFF), which Linux rejects.
+        private const int SOL_SOCKET = 1;
         private const int SO_PASSCRED = 16;
 
         protected override async ValueTask<SetupResult> SetupAsync(CancellationToken cancellationToken)
@@ -180,7 +183,7 @@ internal static class Program
             var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
             try
             {
-                socket.SetRawSocketOption((int)SocketOptionLevel.Socket, SO_PASSCRED, BitConverter.GetBytes(1));
+                socket.SetRawSocketOption(SOL_SOCKET, SO_PASSCRED, BitConverter.GetBytes(1));
                 await socket.ConnectAsync(ParseUnixEndPoint(address), cancellationToken);
                 return new SetupResult
                 {
