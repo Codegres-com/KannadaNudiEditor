@@ -1,3 +1,5 @@
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using KannadaNudiWeb.Services;
 using Tmds.DBus.Protocol;
@@ -88,22 +90,27 @@ internal static class Program
             return 2;
         }
 
+        string step = "connect";
         try
         {
-            _bus = new DBusConnection(address);
+            _bus = new DBusConnection(new IBusConnectionOptions(address));
             await _bus.ConnectAsync();
             _bus.AddMethodHandler(new FactoryHandler());
+            step = "register-component";
             await RegisterComponentAsync();
+            step = "get-global-engine";
             _previousEngine = await GetGlobalEngineAsync() ?? FallbackEngine;
+            step = "watch-engine";
             await _bus.WatchSignalAsync(null, IBusPath, IBusInterface, "GlobalEngineChanged",
                 (Message m, object? _) => m.GetBodyReader().ReadString(),
                 (Notification<string> n) => { if (n.HasValue) OnGlobalEngineChanged(n.Value); },
                 ObserverFlags.None, false, null);
+            step = "set-global-engine";
             await TakeOverAsync();
         }
         catch (Exception ex)
         {
-            Emit($"error ibus {ex.GetType().Name}: {ex.Message}".Replace('\n', ' '));
+            Emit($"error ibus {step} ({address}) {ex.GetType().Name}: {ex.Message}".Replace('\n', ' '));
             return 1;
         }
 
@@ -159,6 +166,60 @@ internal static class Program
     }
 
     private static bool IsSnap() => Environment.GetEnvironmentVariable("SNAP") != null;
+
+    // ibus-daemon is a GLib D-Bus server: it authenticates clients by the SCM_CREDENTIALS attached
+    // to the first byte. Tmds sends that byte without credentials, so the kernel reports the peer
+    // as "nobody" and the daemon hangs up ("Connection closed by peer"). With SO_PASSCRED set on our
+    // own socket the kernel attaches our real credentials to everything we send.
+    private sealed class IBusConnectionOptions(string address) : DBusConnectionOptions
+    {
+        private const int SO_PASSCRED = 16;
+
+        protected override async ValueTask<SetupResult> SetupAsync(CancellationToken cancellationToken)
+        {
+            var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            try
+            {
+                socket.SetRawSocketOption((int)SocketOptionLevel.Socket, SO_PASSCRED, BitConverter.GetBytes(1));
+                await socket.ConnectAsync(ParseUnixEndPoint(address), cancellationToken);
+                return new SetupResult
+                {
+                    ConnectionStream = new NetworkStream(socket, ownsSocket: true),
+                    UserId = geteuid().ToString(),
+                    TeardownToken = socket,
+                };
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+        }
+
+        protected override void Teardown(object? token) => (token as IDisposable)?.Dispose();
+
+        // "unix:path=/home/u/.cache/ibus/dbus-XXXX,guid=..." or "unix:abstract=/tmp/dbus-XXXX,guid=..."
+        private static UnixDomainSocketEndPoint ParseUnixEndPoint(string address)
+        {
+            foreach (string entry in address.Split(';'))
+            {
+                if (!entry.StartsWith("unix:")) continue;
+                foreach (string pair in entry["unix:".Length..].Split(','))
+                {
+                    int eq = pair.IndexOf('=');
+                    if (eq < 0) continue;
+                    string key = pair[..eq];
+                    string value = Uri.UnescapeDataString(pair[(eq + 1)..]);
+                    if (key == "path") return new UnixDomainSocketEndPoint(value);
+                    if (key == "abstract") return new UnixDomainSocketEndPoint("\0" + value);
+                }
+            }
+            throw new ArgumentException($"Unsupported IBus address: {address}");
+        }
+
+        [DllImport("libc")]
+        private static extern uint geteuid();
+    }
 
     // ---- ibus-daemon calls ---------------------------------------------------------------
 
