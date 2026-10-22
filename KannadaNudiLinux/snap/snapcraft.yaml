@@ -1,7 +1,7 @@
 name: kannadanudi
 title: Kannada Nudi Editor
 base: core24
-version: '1.0.1'
+version: '1.0.2'
 summary: Kannada Nudi Editor desktop app
 description: |
   Kannada Nudi Editor is a rich text editor designed to make writing in Kannada effortless.
@@ -28,7 +28,7 @@ platforms:
 
 apps:
   kannadanudi:
-    command: kannadanudilinux
+    command: kannadanudilinux --no-sandbox
     extensions: [gnome]
     plugs:
       - desktop
@@ -49,13 +49,11 @@ parts:
   kannadanudi:
     plugin: dump
     source: dist/linux-unpacked
-    organize:
-      '*': .
     stage-packages:
       - libnss3
       - libnspr4
       - libxss1
       - libxtst6
       - libasound2t64
-      - libdrm2
-      - libgbm1
+    prime:
+      - -chrome-sandbox

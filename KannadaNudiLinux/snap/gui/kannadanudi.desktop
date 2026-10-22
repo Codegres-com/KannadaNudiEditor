@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Kannada Nudi Editor
+GenericName=Kannada Text Editor
+Comment=Offline Kannada Nudi text editor
+Exec=kannadanudi %U
+Icon=${SNAP}/meta/gui/kannadanudi.png
+Terminal=false
+Categories=Office;Utility;TextEditor;
+StartupWMClass=KannadaNudi
