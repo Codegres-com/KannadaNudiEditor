@@ -12,7 +12,7 @@ namespace KannadaNudiWeb.Services
     }
 
     // Nudi / Baraha keystroke engine with no web dependencies, so it is shared by the
-    // Blazor editor and the Windows global keyboard helper (KannadaNudiWindows/GlobalKeyboard).
+    // Blazor editor and the Windows / Linux global keyboard helpers (*/GlobalKeyboard).
     public class KannadaKeyboardEngine
     {
         private readonly StringBuilder _buffer = new StringBuilder();

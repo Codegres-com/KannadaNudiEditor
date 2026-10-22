@@ -74,7 +74,7 @@
          {
              <button id="btn-global-mode" class="btn @(globalKeyboard.Enabled ? "btn-warning" : "btn-outline-secondary")"
                      disabled="@(!globalKeyboard.Available)" @onclick="ToggleGlobalKeyboard"
-                     title="@(globalKeyboard.Hint ?? "Type Kannada in any application (browser, Word, Excel, ...). Shortcut: F9")">
+                     title="Type Kannada in any application (browser, Word, Excel, ...). Shortcut: F9">
                  <span class="bi bi-globe"></span> Global mode: @(globalKeyboard.Enabled ? "ON" : "OFF")
              </button>
          }
@@ -398,8 +398,6 @@
         public bool Available { get; set; }
         public bool Enabled { get; set; }
         public string Layout { get; set; } = nameof(KeyboardLayout.Nudi);
-        // Platform-specific tooltip (Linux explains IBus / Super+Space); Windows uses the default
-        public string? Hint { get; set; }
     }
 
     GlobalKeyboardState? globalKeyboard;

@@ -28,14 +28,15 @@ sudo snap install kannadanudi
 ```
 Store page: https://snapcraft.io/kannadanudi
 
-## ⌨️ Global Mode — Kannada in any application
+## ⌨️ Global Mode (Direct Type) — Kannada in any application
 
-Click **Global mode** next to Save / Open to add Kannada to GNOME's keyboard input sources (IBus `m17n:kn:kgp` for Nudi, `m17n:kn:itrans` for Baraha, following the editor's layout). Then press **Super+Space** to switch between English and Kannada in any app. Click it again to remove it.
+Press **F9** anywhere (browser, LibreOffice, gedit, terminal, ...) to switch between Kannada and English, using the same Nudi / Baraha key bindings as the editor — just like the Windows app. It can also be toggled with the **Global mode** button next to Save / Open, or from the tray icon.
 
-- Needs the IBus m17n engines on the host: `sudo apt install ibus-m17n` (log out and back in once after installing).
-- Windows-style F9 key hooks are impossible on Linux: Wayland and snap confinement block system-wide key capture. Inside the editor, F9 still toggles KAN / ENG.
-- Implemented in `global-keyboard.js` using `gsettings` (`org.gnome.desktop.input-sources sources`); the snap uses the `gsettings` plug.
-
+- A small sticky toast in the bottom-right corner shows **Global Mode: English** or **Global Mode: Kannada** while the app is running.
+- Closing the editor keeps the app in the tray so F9 keeps working; quit from the tray menu.
+- Linux has no system-wide keyboard hook (Wayland and snap confinement forbid it), so `GlobalKeyboard/` (a small .NET 8 helper sharing `KannadaKeyboardEngine.cs` with the editor) registers itself on the running **IBus** daemon as an input method engine and makes itself the active engine. It needs nothing installed on the host: IBus is part of every Ubuntu desktop. The pending syllable is shown underlined (preedit) until it is complete.
+- Picking another input method with Super+Space is respected; click **Global mode** again to take over. When the app quits the previous input method is restored.
+- `npm run package` publishes the helper into `app/global-keyboard/`.
 
 ### Option 1: Install Snap Package (`.snap`)
 ```bash

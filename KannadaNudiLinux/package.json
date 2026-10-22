@@ -1,6 +1,6 @@
 {
   "name": "kannadanudilinux",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Kannada Nudi Editor desktop app for Linux / Ubuntu",
   "main": "main.js",
   "homepage": "https://codegres.com",
@@ -39,6 +39,9 @@
       "app/**/*",
       "icon.png"
     ],
+    "asarUnpack": [
+      "app/global-keyboard/**"
+    ],
     "linux": {
       "target": [
         "tar.gz",
@@ -62,7 +65,6 @@
         "x11",
         "audio-playback",
         "home",
-        "gsettings",
         "browser-support",
         "network",
         "network-bind"

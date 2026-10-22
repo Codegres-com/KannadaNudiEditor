@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    System-wide (Global / Direct Type) Kannada keyboard for Linux: an IBus input method engine
+    registered at runtime on the user's ibus-daemon. Spawned and controlled by the Electron
+    shell (main.js); published by package-app.js into app/global-keyboard as a self-contained
+    single-file executable.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>KannadaNudiGlobalKeyboard</AssemblyName>
+    <RootNamespace>KannadaNudiGlobalKeyboard</RootNamespace>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.95.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same Nudi / Baraha bindings as the editor -->
+    <Compile Include="..\..\KannadaNudiWeb\Services\KannadaKeyboardEngine.cs" Link="KannadaKeyboardEngine.cs" />
+  </ItemGroup>
+
+</Project>

@@ -9,6 +9,8 @@ const WEB_PUBLISH_DIR = path.join(WEB_DIR, 'publish');
 const WEB_PUBLISH_WWWROOT = path.join(WEB_PUBLISH_DIR, 'wwwroot');
 const LINUX_APP_DIR = path.join(__dirname, 'app');
 const LINUX_WWWROOT = path.join(LINUX_APP_DIR, 'wwwroot');
+const GLOBAL_KEYBOARD_CSPROJ = path.join(__dirname, 'GlobalKeyboard', 'KannadaNudiGlobalKeyboard.csproj');
+const GLOBAL_KEYBOARD_OUT = path.join(LINUX_APP_DIR, 'global-keyboard');
 
 function copyRecursive(src, dest) {
   if (!fs.existsSync(src)) {
@@ -39,7 +41,7 @@ console.log('====================================================');
 console.log('  Packaging Kannada Nudi Web into Linux Application ');
 console.log('====================================================');
 
-console.log('\n[1/3] Publishing .NET Blazor WebAssembly project in Release mode...');
+console.log('\n[1/4] Publishing .NET Blazor WebAssembly project in Release mode...');
 try {
   const publishCmd = `dotnet publish "${WEB_CSPROJ}" -c Release -o "${WEB_PUBLISH_DIR}"`;
   console.log(`> ${publishCmd}`);
@@ -49,11 +51,11 @@ try {
   process.exit(1);
 }
 
-console.log('\n[2/3] Cleaning previous app directory...');
+console.log('\n[2/4] Cleaning previous app directory...');
 removeDirRecursive(LINUX_APP_DIR);
 fs.mkdirSync(LINUX_WWWROOT, { recursive: true });
 
-console.log('\n[3/3] Copying published assets to KannadaNudiLinux/app/wwwroot...');
+console.log('\n[3/4] Copying published assets to KannadaNudiLinux/app/wwwroot...');
 if (fs.existsSync(WEB_PUBLISH_WWWROOT)) {
   copyRecursive(WEB_PUBLISH_WWWROOT, LINUX_WWWROOT);
   console.log('Successfully copied published wwwroot to app/wwwroot.');
@@ -62,8 +64,21 @@ if (fs.existsSync(WEB_PUBLISH_WWWROOT)) {
   process.exit(1);
 }
 
+console.log('\n[4/4] Publishing Global Keyboard helper (F9 system-wide Kannada typing via IBus)...');
+try {
+  const publishCmd = `dotnet publish "${GLOBAL_KEYBOARD_CSPROJ}" -c Release -o "${GLOBAL_KEYBOARD_OUT}" -p:DebugType=none`;
+  console.log(`> ${publishCmd}`);
+  execSync(publishCmd, { stdio: 'inherit', cwd: path.dirname(GLOBAL_KEYBOARD_CSPROJ) });
+  // Publishing from Windows does not set the executable bit.
+  fs.chmodSync(path.join(GLOBAL_KEYBOARD_OUT, 'KannadaNudiGlobalKeyboard'), 0o755);
+} catch (err) {
+  console.error('\nERROR: Failed to publish the Global Keyboard helper.', err);
+  process.exit(1);
+}
+
 // Verification checks
 const essentialFiles = [
+  path.join(GLOBAL_KEYBOARD_OUT, 'KannadaNudiGlobalKeyboard'),
   path.join(LINUX_WWWROOT, 'index.html'),
   path.join(LINUX_WWWROOT, '_framework', 'blazor.webassembly.js'),
   path.join(LINUX_WWWROOT, 'lib', 'bootstrap', 'bootstrap.min.css'),
