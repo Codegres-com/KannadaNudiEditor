@@ -37,6 +37,43 @@ namespace KannadaNudiEditor.Helpers.Conversion
         public string UnicodeToAsciiConverter(string input)
             => Convert(input, Direction.UnicodeToAscii);
 
+        /// <summary>
+        /// Mixed English + Nudi ASCII text: converts only the Nudi words, English is kept.
+        /// </summary>
+        public string MixedAsciiToUnicodeConverter(string input)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(input)) return input ?? string.Empty;
+                return FileConversionUtilities.ConvertMixedAsciiToUnicode(input, GetCfg(Direction.AsciiToUnicode));
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.LogException(ex, "[MixedAsciiToUnicode] Failed");
+                return input ?? string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Converts the Nudi-font runs of a .docx to Unicode Kannada, leaving English runs and
+        /// formatting untouched. Returns the original bytes and 0 when the file has no legacy
+        /// Kannada font (or cannot be parsed).
+        /// </summary>
+        public (byte[] Docx, int ConvertedRuns) DocxAsciiToUnicodeConverter(byte[] docx)
+        {
+            try
+            {
+                var bytes = FileConversionUtilities.ConvertDocxAsciiToUnicode(
+                    docx, GetCfg(Direction.AsciiToUnicode), out int runs);
+                return runs > 0 ? (bytes, runs) : (docx, 0);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.LogException(ex, "[DocxAsciiToUnicode] Failed");
+                return (docx, 0);
+            }
+        }
+
         private enum Direction { AsciiToUnicode, UnicodeToAscii }
 
         private FileConversionUtilities.ConversionConfig GetCfg(Direction dir)

@@ -38,6 +38,7 @@ namespace KannadaNudiEditor.Helpers.Conversion
             public required char Halant { get; init; }
 
             public required char AsciiHalantChar { get; init; }
+            public char AsciiNuktaChar { get; init; } = '\u00F3';
             public required HashSet<char> AsciiConsonantStartChars { get; init; }
             public required HashSet<char> AsciiJoinCharsBeforeNoSpace { get; init; }
 
@@ -187,6 +188,7 @@ namespace KannadaNudiEditor.Helpers.Conversion
                     Halant = halant,
 
                     AsciiHalantChar = asciiHalantChar,
+                    AsciiNuktaChar = FirstOrDefault(root.Meta.AsciiNuktaChar, '\u00F3'),
                     AsciiConsonantStartChars = new HashSet<char>(root.AsciiConsonantStartChars ?? string.Empty),
                     AsciiJoinCharsBeforeNoSpace = new HashSet<char>(root.AsciiJoinCharsBeforeNoSpace ?? string.Empty),
 
@@ -277,6 +279,7 @@ namespace KannadaNudiEditor.Helpers.Conversion
             public string? Zwnj { get; set; }
             public string? Halant { get; set; }
             public string? AsciiHalantChar { get; set; }
+            public string? AsciiNuktaChar { get; set; }
 
             // U2A
             public string? AsciiArkavattuChar { get; set; }

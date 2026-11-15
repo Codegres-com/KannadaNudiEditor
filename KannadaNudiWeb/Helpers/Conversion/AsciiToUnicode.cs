@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace KannadaNudiEditor.Helpers.Conversion
 {
@@ -11,6 +12,13 @@ namespace KannadaNudiEditor.Helpers.Conversion
         // =========================================================
         public static string ConvertAsciiToUnicode(string input, ConversionConfig cfg)
         {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            // Nukta is typed after the vowel-sign glyphs it visually sits with
+            // (e.g. "eóÉ" = ಜ಼ೆ). Move it after them so the base+vowel token
+            // still matches; the nukta is then attached to the syllable base.
+            input = MoveNuktaAfterVowelSigns(input, cfg.AsciiNuktaChar);
+
             string stage0 = PreNormalizeAscii(
                 input,
                 cfg.AsciiHalantChar,
@@ -26,6 +34,8 @@ namespace KannadaNudiEditor.Helpers.Conversion
                 mapped = PostProcessKannadaClusters(mapped, cfg.DependentVowels, cfg.Halant);
 
             mapped = ApplyPostFixupsKannadaRuns(mapped, cfg.PostFixupsPairs);
+
+            mapped = NormalizeJoinersAfterHalant(mapped, cfg.Halant, cfg.Zwj, cfg.Zwnj);
 
             return mapped.Normalize(NormalizationForm.FormC);
         }
@@ -69,15 +79,35 @@ namespace KannadaNudiEditor.Helpers.Conversion
                 char ch = text[i];
                 string one = ch.ToString();
 
-                if (cfg.AsciiArkavattu.TryGetValue(one, out var ra))
+                if (ch == cfg.AsciiNuktaChar)
                 {
-                    sb.Append(ra);
-                    sb.Append(cfg.Halant);
+                    // Nukta goes right after the base consonant of the current syllable.
+                    int start = FindSyllableStart(sb, cfg);
+                    if (start >= 0) sb.Insert(start + 1, Nukta);
+                }
+                else if (cfg.AsciiArkavattu.TryGetValue(one, out var ra))
+                {
+                    // Arkavattu is typed AFTER the syllable but is logically RA+HALANT
+                    // BEFORE it (e.g. "PÁAiÀÄð" = ಕಾರ್ಯ, "¥ÀªÀðvÀ" = ಪರ್ವತ).
+                    int start = FindSyllableStart(sb, cfg);
+                    if (start >= 0) sb.Insert(start, ra + cfg.Halant);
+                    else { sb.Append(ra); sb.Append(cfg.Halant); }
                 }
                 else if (cfg.Vattaksharagalu.TryGetValue(one, out var baseLetter))
                 {
-                    sb.Append(cfg.Halant);
-                    sb.Append(baseLetter);
+                    TrimTrailingJoiners(sb, cfg);
+                    if (sb.Length > 0 && sb[sb.Length - 1] == cfg.Halant)
+                    {
+                        // Explicit halant + vattakshara glyph = the whole cluster takes
+                        // the halant (e.g. "£ïì" = ನ್ಸ್, "DPïì¥sÀqïð" = ಆಕ್ಸ್‌ಫರ್ಡ್).
+                        sb.Append(baseLetter);
+                        sb.Append(cfg.Halant);
+                    }
+                    else
+                    {
+                        sb.Append(cfg.Halant);
+                        sb.Append(baseLetter);
+                    }
                 }
                 else if (cfg.BrokenCases.TryGetValue(one, out var bc))
                 {
@@ -142,13 +172,85 @@ namespace KannadaNudiEditor.Helpers.Conversion
             return false;
         }
 
+        private const string Nukta = "\u0CBC";
+
         private static void ApplyBrokenCase(StringBuilder sb, BrokenCase bc, ConversionConfig cfg)
         {
             if (sb.Length == 0) return;
 
-            char last = sb[sb.Length - 1];
-            if (cfg.DependentVowels.Contains(last) && bc.Mapping.TryGetValue(last, out char replacement))
-                sb[sb.Length - 1] = replacement;
+            // The vowel sign may sit before a vattakshara chain that was typed
+            // after it (e.g. "¯ÉàöÊ" = ಲೆ + ್ಪ + ೈ-part => ಲ್ಪೈ). Skip the chain.
+            int j = sb.Length;
+            while (j >= 2 && IsKannadaConsonant(sb[j - 1]) && sb[j - 2] == cfg.Halant) j -= 2;
+            while (j > 0 && sb[j - 1] == Nukta[0]) j--;
+            if (j == 0) return;
+
+            char v = sb[j - 1];
+            if (cfg.DependentVowels.Contains(v) && bc.Mapping.TryGetValue(v, out char replacement))
+                sb[j - 1] = replacement;
+        }
+
+        /// <summary>Index of the base consonant of the last syllable in sb, or -1.</summary>
+        private static int FindSyllableStart(StringBuilder sb, ConversionConfig cfg)
+        {
+            int j = sb.Length;
+            while (j > 0)
+            {
+                char c = sb[j - 1];
+                if (cfg.DependentVowels.Contains(c) || c == '\u0C82' || c == '\u0C83' ||
+                    c == cfg.Zwj || c == cfg.Zwnj || c == cfg.Halant || c == Nukta[0])
+                {
+                    j--;
+                }
+                else if (IsKannadaConsonant(c) && j >= 2 && sb[j - 2] == cfg.Halant)
+                {
+                    j -= 2;
+                }
+                else break;
+            }
+            return (j > 0 && IsKannadaConsonant(sb[j - 1])) ? j - 1 : -1;
+        }
+
+        private static void TrimTrailingJoiners(StringBuilder sb, ConversionConfig cfg)
+        {
+            while (sb.Length > 0 && (sb[sb.Length - 1] == cfg.Zwj || sb[sb.Length - 1] == cfg.Zwnj))
+                sb.Length--;
+        }
+
+        private static string MoveNuktaAfterVowelSigns(string input, char nukta)
+        {
+            if (input.IndexOf(nukta) < 0) return input;
+            string n = Regex.Escape(nukta.ToString());
+            return Regex.Replace(input, n + "([\u00C0-\u00CB]+)", m => m.Groups[1].Value + nukta);
+        }
+
+        /// <summary>
+        /// An explicit (visible) halant before a consonant is written with ZWNJ, which every
+        /// Kannada font renders as a visible virama. ZWJ there can produce a conjunct in some
+        /// fonts, and any joiner before a non-consonant is meaningless, so drop it.
+        /// </summary>
+        public static string NormalizeJoinersAfterHalant(string text, char halant, char zwj, char zwnj)
+        {
+            if (string.IsNullOrEmpty(text) || text.IndexOf(halant) < 0) return text;
+
+            var sb = new StringBuilder(text.Length);
+            int i = 0;
+            while (i < text.Length)
+            {
+                char c = text[i];
+                sb.Append(c);
+                i++;
+                if (c != halant) continue;
+
+                int j = i;
+                while (j < text.Length && (text[j] == zwj || text[j] == zwnj)) j++;
+                if (j == i) continue;
+
+                if (j < text.Length && IsKannadaConsonant(text[j]))
+                    sb.Append(zwnj);
+                i = j;
+            }
+            return sb.ToString();
         }
 
 
@@ -166,9 +268,8 @@ namespace KannadaNudiEditor.Helpers.Conversion
         {
             if (string.IsNullOrEmpty(input)) return input;
 
-            // Remove whitespace after explicit halant marker
-            input = input.Replace($"{asciiHalantChar} ", asciiHalantChar.ToString(), StringComparison.Ordinal)
-                         .Replace($"{asciiHalantChar}\t", asciiHalantChar.ToString(), StringComparison.Ordinal);
+            // NOTE: whitespace after the explicit halant marker is a real word break
+            // ("EAVèµï ¨sÁµÉ" = ಇಂಗ್ಲಿಷ್ ಭಾಷೆ), so it is kept.
 
             if (joinCharsBeforeNoSpace == null || joinCharsBeforeNoSpace.Count == 0)
                 return input;

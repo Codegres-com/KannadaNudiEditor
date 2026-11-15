@@ -138,7 +138,7 @@
                         <input class="form-check-input" type="radio" name="importType" id="importAscii" value="ASCII" checked="@(importType == "ASCII")" @onchange="@(() => importType = "ASCII")">
                         <label class="form-check-label" for="importAscii">
                             <strong>ASCII (Nudi/Baraha)</strong><br/>
-                            <small class="text-muted">Use this if the file contains English characters (e.g. "r", "k") that look like Kannada when using Nudi fonts.</small>
+                            <small class="text-muted">Use this if the file contains English characters (e.g. "r", "k") that look like Kannada when using Nudi fonts. Mixed English + Kannada files are supported: only the Nudi text is converted, English is kept as it is.</small>
                         </label>
                     </div>
 
@@ -617,11 +617,12 @@
                 // If user selected ASCII mode, it means the CONTENT is visually ASCII (Nudi),
                 // but the file encoding is likely ANSI or UTF-8.
                 // We'll decode as UTF-8 string first.
-                string rawText = System.Text.Encoding.UTF8.GetString(pendingFileBytes);
+                string rawText = DecodeTextFile(pendingFileBytes);
 
                 if (importType == "ASCII")
                 {
-                    htmlContent = FileConversionService.AsciiToUnicodeConverter(rawText);
+                    // Mixed English + Nudi: convert only the Nudi words.
+                    htmlContent = FileConversionService.MixedAsciiToUnicodeConverter(rawText);
                     // Wrap in p tags for Quill? Quill handles plain text usually, but setHtml expects HTML.
                     // Let's wrap in <p> or just let Quill handle it.
                     // But AsciiToUnicodeConverter returns plain text.
@@ -635,11 +636,28 @@
             }
             else if (pendingFileExtension == ".docx")
             {
-                // Convert Docx to HTML using Mammoth (JS)
-                htmlContent = await JSRuntime.InvokeAsync<string>("quillInterop.docToHtml", pendingFileBytes);
+                byte[] docxBytes = pendingFileBytes;
+                bool convertedByFont = false;
 
                 if (importType == "ASCII")
                 {
+                    // Font-aware conversion on the DOCX itself: only runs set in a Nudi font
+                    // are converted, so English text in the same document stays English.
+                    // (Mammoth drops font names, so this must happen before docToHtml.)
+                    var (converted, runs) = FileConversionService.DocxAsciiToUnicodeConverter(docxBytes);
+                    if (runs > 0)
+                    {
+                        docxBytes = converted;
+                        convertedByFont = true;
+                    }
+                }
+
+                // Convert Docx to HTML using Mammoth (JS)
+                htmlContent = await JSRuntime.InvokeAsync<string>("quillInterop.docToHtml", docxBytes);
+
+                if (importType == "ASCII" && !convertedByFont)
+                {
+                    // No Nudi font names in the file: fall back to word-level detection.
                     htmlContent = ProcessHtmlAsciiToUnicode(htmlContent);
                 }
             }
@@ -656,6 +674,21 @@
         finally
         {
             CloseModal();
+        }
+    }
+
+    // Legacy Nudi .txt files are usually saved as ANSI (Windows-1252), not UTF-8.
+    // Decoding those bytes as UTF-8 destroys the Nudi glyph characters (À, Á, ¸ …).
+    private static string DecodeTextFile(byte[] bytes)
+    {
+        try
+        {
+            string text = new System.Text.UTF8Encoding(false, true).GetString(bytes);
+            return text.TrimStart('\uFEFF');
+        }
+        catch (System.Text.DecoderFallbackException)
+        {
+            return System.Text.Encoding.Latin1.GetString(bytes);
         }
     }
 
@@ -677,8 +710,8 @@
                 // 1. Decode HTML entities (e.g. &nbsp; to space, &lt; to <)
                 string decoded = System.Net.WebUtility.HtmlDecode(part);
 
-                // 2. Convert Nudi ASCII to Unicode
-                string converted = FileConversionService.AsciiToUnicodeConverter(decoded);
+                // 2. Convert Nudi ASCII to Unicode (Nudi words only; English words are kept)
+                string converted = FileConversionService.MixedAsciiToUnicodeConverter(decoded);
 
                 // 3. Re-encode HTML special chars (e.g. < to &lt;) to prevent breaking HTML
                 string encoded = System.Net.WebUtility.HtmlEncode(converted);
