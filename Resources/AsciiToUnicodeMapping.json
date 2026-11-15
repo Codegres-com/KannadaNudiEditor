@@ -1,12 +1,13 @@
 {
     "meta": {
         "name": "ASCII/ANSI -> Unicode Kannada",
-        "version": 3,
+        "version": 4,
         "maxTokenLength": 6,
         "zwj": "\u200D",
         "zwnj": "\u200C",
         "halant": "\u0CCD",
-        "asciiHalantChar": "\u00EF"
+        "asciiHalantChar": "\u00EF",
+        "asciiNuktaChar": "\u00F3"
     },
     "asciiConsonantStartChars": "JRmpL°¬aej0µqC§Sªkv¿y¢¼lAbFU£E®¾±DGKPMQZo²¹z¶½¨»urT¦gndNfwWItHc«µO¸VYºx¥©X",
     "asciiJoinCharsBeforeNoSpace": "éçæðñòÃÄÆÈÊÌÍÎÏÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæèêëìíî",
@@ -537,26 +538,7 @@
         "0iÀiÁ": "ಯಾ",
         "A": "ಂ",
         "B": "ಃ",
-        "¥Áæ": "ಪ್ರ",
-        "¸ÀÌø": "ಸ್ಕೃ",
-        "¸ÉÜ": "ಸ್ಥೆ",
-        "μÀÚ": "ಷ್ಣ",
-        "¥Àæ": "ಪ್ರ",
-        "¥sÀæ": "ಫ್ರ",
-        "mïìð": "ರ್ಟ್ಸ್",
-        "¥sïÛ": "ಫ್ತ್",
-        "¥ÉæöÊ": "ಪ್ರೈ",
-        "¹Öæ": "ಸ್ಟ್ರಿ",
-        "¸ÀÆÌ": "ಸ್ಕೂ",
-        "PÀßð": "ರ್ಕ್ನ",
-        "zÀÄæ": "ದ್ರು",
-        "PÀÄåð": "ರ್ಕ್ಯು",
-        "£ÉìöÊ": "ನ್ಸೈ",
-        "®Øæ": "ಲ್ಡ್ರ",
-        "£ïì": "ನ್ಸ್",
-        "ªÀÈZÀÄÑ": "ಚ್ಚು",
-        "PÀëöå": "ಕ್ಷ್ಯ",
-        "QëöäÃ": "ಕ್ಷ್ಮೀ"
+        "ø": "ೃ"
     },
     "brokenCases": {
         "Ã": {
@@ -679,10 +661,6 @@
         {
             "from": "್ಸ",
             "to": "್ಸ"
-        },
-        {
-            "from": "ಥಿರ್",
-            "to": "ರ್ಥಿ"
         }
     ],
     "numbersMapping": {
