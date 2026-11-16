@@ -23,7 +23,7 @@ namespace KannadaNudiWeb.Services
         private readonly Dictionary<string, string> _nudiConsonants = new Dictionary<string, string>
         {
             { "k", "ಕ" }, { "K", "ಖ" }, { "g", "ಗ" }, { "G", "ಘ" }, { "Z", "ಙ" },
-            { "c", "ಚ" }, { "C", "ಛ" }, { "j", "ಜ" }, { "z", "ಞ" },
+            { "c", "ಚ" }, { "C", "ಛ" }, { "j", "ಜ" }, { "J", "ಝ" }, { "z", "ಞ" },
             { "q", "ಟ" }, { "Q", "ಠ" }, { "w", "ಡ" }, { "W", "ಢ" }, { "N", "ಣ" },
             { "t", "ತ" }, { "T", "ಥ" }, { "d", "ದ" }, { "D", "ಧ" }, { "n", "ನ" },
             { "p", "ಪ" }, { "P", "ಫ" }, { "b", "ಬ" }, { "B", "ಭ" }, { "m", "ಮ" },

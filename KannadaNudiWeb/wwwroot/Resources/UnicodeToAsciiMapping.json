@@ -74,7 +74,7 @@
         "uniVowelPlusAnusvaraVisarga": "(?<v>[\\u0C85-\\u0C94\\u0C8E-\\u0C90\\u0CE0])(?<av>[\\u0C82\\u0C83])",
         "uniConsonantPlusVowel": "(?<base>[\\u0C95-\\u0CB9\\u0CDE])(?<dv>[\\u0CBE-\\u0CCC\\u0C82\\u0C83]{1,2})(?!\\u0CCD|\\u200D)",
         "uniVattakshara": "(?<base>[\\u0C95-\\u0CB9\\u0CDE])(?<chain>(?:\\u0CCD\\u200D?[\\u0C95-\\u0CB9\\u0CDE])+)(?<dv>[\\u0CBE-\\u0CCC\\u0C82\\u0C83]{0,2})",
-        "uniRephWithoutZwj": "\\u0CB0\\u0CCD\\u0CCD(?<baseVattaCons>\\u200D?[\\u0C95-\\u0CB9\\u0CDE])(?<restChain>(?:\\u0CCD\\u200D?[\\u0C95-\\u0CB9\\u0CDE])*)(?<dv>[\\u0CBE-\\u0CCC\\u0C82\\u0C83]{0,2})"
+        "uniRephWithoutZwj": "\\u0CB0\\u0CCD(?<baseVattaCons>[\\u0C95-\\u0CB9\\u0CDE])(?<restChain>(?:\\u0CCD\\u200D?[\\u0C95-\\u0CB9\\u0CDE])*)(?<dv>[\\u0CBE-\\u0CCC\\u0C82\\u0C83]{0,2})"
     },
     "mapping": {
         "\u0c82": "A",
